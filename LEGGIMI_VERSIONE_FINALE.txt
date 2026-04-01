@@ -1,0 +1,219 @@
+═══════════════════════════════════════════════════════════════════════
+  📦 TRADING CALCULATOR - VERSIONE FINALE
+═══════════════════════════════════════════════════════════════════════
+
+✅ COSA È INCLUSO IN QUESTA VERSIONE:
+
+1. ✅ Tailwind CSS completo (design perfetto!)
+2. ✅ Gestione utenti separata (facile da gestire!)
+3. ✅ Tutte le formule OneFunded aggiornate
+4. ✅ l8_base OneFunded aggiornati
+5. ✅ Audacity Capital configurato
+6. ✅ Design responsive mobile
+7. ✅ Tutti i provider configurati
+
+═══════════════════════════════════════════════════════════════════════
+
+🚀 COME AGGIORNARE IL SITO (5 MINUTI):
+
+PASSO 1: Estrai il file ZIP
+  - Estrai trading-calculator-deploy.zip in una cartella
+
+PASSO 2: Vai su GitHub
+  - Apri https://github.com
+  - Vai nel repository "trading-calculator"
+
+PASSO 3: Carica i file aggiornati
+  - Click "Add file" → "Upload files"
+  - Trascina TUTTI i file dalla cartella estratta
+  - GitHub chiederà: "Replace existing files?" → Click "Replace"
+  - Commit message: "Versione finale - gestione utenti separata"
+  - Click "Commit changes"
+
+PASSO 4: Aspetta il deploy
+  - Vercel rideployerà automaticamente (2-3 minuti)
+  - Vai su https://vercel.com/dashboard per vedere il progresso
+
+PASSO 5: Testa il sito
+  - Ricarica il tuo sito
+  - Verifica che tutto funzioni
+  - FATTO! 🎉
+
+═══════════════════════════════════════════════════════════════════════
+
+👥 GESTIRE GLI UTENTI (SISTEMA MANUALE):
+
+📁 File da modificare: components/config/users.js
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ AGGIUNGERE UN NUOVO UTENTE:
+
+1. Vai su GitHub → repository "trading-calculator"
+2. Vai in: components/config/users.js
+3. Click sull'icona matita (✏️) per editare
+4. Aggiungi in DEFAULT_CREDENTIALS:
+
+   'NuovoUtente': 'password123',
+
+5. Aggiungi in USER_LEVEL_PERMISSIONS:
+
+   'NuovoUtente': [1, 2, 3],  // Livelli che può usare
+
+6. Commit changes
+7. Vercel rideploya automaticamente (2 min)
+8. Nuovo utente può fare login! ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✏️ MODIFICARE PASSWORD DI UN UTENTE:
+
+1. Vai in components/config/users.js
+2. Trova l'utente in DEFAULT_CREDENTIALS
+3. Cambia la password:
+
+   PRIMA:  'FPia': '500',
+   DOPO:   'FPia': 'nuovaPassword',
+
+4. Commit changes
+5. Password aggiornata! ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 MODIFICARE PERMESSI (LIVELLI):
+
+1. Vai in components/config/users.js
+2. Trova l'utente in USER_LEVEL_PERMISSIONS
+3. Cambia i livelli permessi:
+
+   PRIMA:  'Nick': [3, 4],        // Solo livelli 3 e 4
+   DOPO:   'Nick': [1, 2, 3, 4, 5], // Tutti i livelli
+
+4. Commit changes
+5. Permessi aggiornati! ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ RIMUOVERE UN UTENTE:
+
+1. Vai in components/config/users.js
+2. Cancella la riga in DEFAULT_CREDENTIALS
+3. Cancella la riga in USER_LEVEL_PERMISSIONS
+4. Commit changes
+5. Utente rimosso! ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 LIVELLI DISPONIBILI:
+
+Livello 1 = $5,000
+Livello 2 = $10,000
+Livello 3 = $25,000
+Livello 4 = $50,000
+Livello 5 = $100,000
+
+Esempi permessi:
+- [1] = Solo livello 1
+- [1, 2] = Livelli 1 e 2
+- [1, 2, 3, 4, 5] = Tutti i livelli (admin)
+
+═══════════════════════════════════════════════════════════════════════
+
+📁 STRUTTURA DEL PROGETTO:
+
+trading-calculator-deploy/
+├── package.json              (Configurazione progetto)
+├── tailwind.config.js        (Config Tailwind CSS)
+├── postcss.config.js         (Config PostCSS)
+├── next.config.js            (Config Next.js)
+├── .gitignore               (File da ignorare)
+│
+├── pages/
+│   ├── _app.js              (App wrapper)
+│   └── index.js             (Homepage)
+│
+├── components/
+│   ├── TradingCalculator.jsx (COMPONENTE PRINCIPALE)
+│   └── config/
+│       └── users.js         (👥 GESTIONE UTENTI - Edita qui!)
+│
+└── styles/
+    └── globals.css          (Stili CSS globali)
+
+═══════════════════════════════════════════════════════════════════════
+
+🎯 UTENTI ATTUALI:
+
+Username       Password    Livelli
+────────────────────────────────────────
+FPia           500         [2, 3]
+AZuc           1000        [2]
+GCos           1000        [2]
+GAlberati      500         [1]
+Nick           2500        [3, 4]
+Rini           2500        [3]
+3              2500        [3, 4]
+1              1           [1, 2, 3, 4, 5] (ADMIN)
+
+═══════════════════════════════════════════════════════════════════════
+
+💡 VANTAGGI DEL SISTEMA MANUALE:
+
+✅ Zero costi (nessun database)
+✅ Controllo totale (approvi tu ogni utente)
+✅ Sicuro (solo tu puoi aggiungere utenti)
+✅ Semplice (file di testo, niente complicazioni)
+✅ Veloce (modifiche in 2 minuti)
+
+═══════════════════════════════════════════════════════════════════════
+
+🆘 PROBLEMI COMUNI:
+
+Q: Ho aggiunto un utente ma non funziona
+A: Verifica di averlo aggiunto sia in DEFAULT_CREDENTIALS 
+   che in USER_LEVEL_PERMISSIONS
+
+Q: L'utente non vede alcuni livelli
+A: Controlla USER_LEVEL_PERMISSIONS e aggiungi i livelli mancanti
+
+Q: Ho cambiato la password ma ancora funziona la vecchia
+A: Aspetta 2-3 minuti che Vercel rideploya, poi prova
+
+Q: Il sito non si aggiorna dopo le modifiche
+A: Vai su Vercel.com/dashboard e controlla che il deploy 
+   sia completato (verde = ok)
+
+═══════════════════════════════════════════════════════════════════════
+
+✅ CHECKLIST FINALE:
+
+Prima di caricare, verifica:
+□ File ZIP estratto
+□ Tutti i file presenti (pages, components, styles, config)
+□ File users.js presente in components/config/
+□ TradingCalculator.jsx aggiornato
+
+Dopo aver caricato:
+□ Commit fatto su GitHub
+□ Deploy completato su Vercel (2-3 min)
+□ Sito ricaricato
+□ Login testato
+□ Calcoli testati
+□ Tutto funziona! 🎉
+
+═══════════════════════════════════════════════════════════════════════
+
+📞 SUPPORTO:
+
+Se hai problemi o domande, ricorda:
+- Il file users.js è commentato e documentato
+- Ogni modifica va su GitHub, Vercel rideploya automaticamente
+- Aspetta sempre 2-3 minuti dopo ogni modifica
+
+═══════════════════════════════════════════════════════════════════════
+
+🎉 BUON LAVORO!
+
+Il tuo Trading Calculator è pronto per essere usato!
+
+═══════════════════════════════════════════════════════════════════════
