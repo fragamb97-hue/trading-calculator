@@ -1,0 +1,125 @@
+═══════════════════════════════════════════════════════════════════════
+  GUIDA RAPIDA - TRADING CALCULATOR SU VERCEL (GRATIS!)
+═══════════════════════════════════════════════════════════════════════
+
+✅ VERCEL È GRATIS! Non serve carta di credito!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 OPZIONE 1: Deploy con GitHub (PIÙ FACILE!)
+
+  PASSO 1 - Crea account GitHub
+  
+    1. Vai su https://github.com
+    2. Clicca "Sign up" (registrazione gratuita)
+    3. Segui le istruzioni
+  
+  PASSO 2 - Carica il progetto su GitHub
+  
+    1. Su GitHub, clicca il bottone verde "New" (nuovo repository)
+    2. Nome: "trading-calculator"
+    3. Clicca "Create repository"
+    4. Segui le istruzioni a schermo per caricare i file
+       (oppure usa GitHub Desktop se preferisci l'interfaccia grafica)
+  
+  PASSO 3 - Deploy su Vercel
+  
+    1. Vai su https://vercel.com
+    2. Clicca "Sign Up"
+    3. Scegli "Continue with GitHub"
+    4. Autorizza Vercel
+    5. Clicca "Import Project"
+    6. Seleziona "trading-calculator"
+    7. Clicca "Deploy"
+  
+  ASPETTA 2 MINUTI → IL SITO È ONLINE! 🎉
+  
+  Ti darà un link tipo: https://trading-calculator-xxx.vercel.app
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 OPZIONE 2: Deploy diretto (senza GitHub)
+
+  PASSO 1 - Installa Node.js
+  
+    1. Vai su https://nodejs.org
+    2. Scarica versione LTS (raccomandato)
+    3. Installa (next, next, next...)
+  
+  PASSO 2 - Installa Vercel CLI
+  
+    Apri il terminale (Prompt dei comandi su Windows) ed esegui:
+    
+    npm install -g vercel
+  
+  PASSO 3 - Login e Deploy
+  
+    Nel terminale, vai nella cartella del progetto:
+    
+    cd percorso/della/cartella/trading-calculator-deploy
+    
+    Poi esegui:
+    
+    vercel login
+    
+    (Crea account gratuito o accedi)
+    
+    Infine:
+    
+    vercel --prod
+    
+    Rispondi alle domande premendo Enter per le opzioni default.
+  
+  ASPETTA 2 MINUTI → IL SITO È ONLINE! 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📱 DOPO IL DEPLOY
+
+  Il tuo sito sarà disponibile a un link tipo:
+  https://trading-calculator-xxx.vercel.app
+  
+  Puoi condividerlo con chiunque!
+  Funziona su desktop, tablet e smartphone!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔄 AGGIORNARE IL SITO
+
+  Con GitHub:
+    1. Modifica i file
+    2. Fai commit e push
+    3. Vercel rideployerà automaticamente!
+  
+  Con Vercel CLI:
+    1. Modifica i file
+    2. Esegui: vercel --prod
+    3. Aspetta 1 minuto!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ PROBLEMI COMUNI
+
+  Q: "Non trovo il terminale"
+  A: Windows → cerca "cmd" o "PowerShell"
+     Mac → cerca "Terminal"
+  
+  Q: "Dice che npm non esiste"
+  A: Installa Node.js prima (vedi Opzione 2, Passo 1)
+  
+  Q: "Il deploy fallisce"
+  A: Controlla i logs su vercel.com/dashboard
+  
+  Q: "Quanto costa?"
+  A: GRATIS! Il piano Hobby di Vercel è gratuito per sempre!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ CONSIGLIO: Usa l'Opzione 1 con GitHub!
+   È più facile e gli aggiornamenti sono automatici!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📧 Hai bisogno di aiuto? Scrivimi e ti guido passo-passo!
+
+═══════════════════════════════════════════════════════════════════════
