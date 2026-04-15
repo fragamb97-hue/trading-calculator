@@ -23,6 +23,7 @@ export const DEFAULT_CREDENTIALS = {
   'GAlberati': '500',
   'Nick': '2500',
   'Rini': '2500',
+  'Angelo': '2500',
   '3': '2500',
   '1': '1'
 };
@@ -49,6 +50,7 @@ export const USER_LEVEL_PERMISSIONS = {
   'GAlberati': [1],         // Solo livello 1
   'Nick': [3, 4],           // Livelli 3 e 4
   'Rini': [3],              // Solo livello 3
+  'Angelo': [3],            // Solo livello 3
   '3': [3, 4],              // Livelli 3 e 4
   '1': [1, 2, 3, 4, 5]      // Tutti i livelli (admin)
 };
