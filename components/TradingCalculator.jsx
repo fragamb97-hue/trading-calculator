@@ -1,5 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { DEFAULT_CREDENTIALS, USER_LEVEL_PERMISSIONS } from './config/users';
+
+const DEFAULT_CREDENTIALS = {
+  'FPia': '500',
+  'AZuc': '1000',
+  'GCos': '1000',
+  'GAlberati': '500',
+  'Nick': '2500',
+  'Rini': '2500',
+  'Angelo': '2500',
+  '3': '2500',
+  '1': '1'
+};
+
+const USER_LEVEL_PERMISSIONS = {
+  'FPia': [2, 3],
+  'AZuc': [2],
+  'GCos': [2],
+  'GAlberati': [1],
+  'Nick': [3, 4],
+  'Rini': [3],
+  'Angelo': [3],
+  '3': [3, 4],
+  '1': [1, 2, 3, 4, 5]
+};
 
 const PROP_WEIGHTS = {
   'the5ers': 1.0,
