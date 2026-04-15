@@ -26,6 +26,7 @@ export const DEFAULT_CREDENTIALS = {
   'Angelo': '2500',
   '3': '2500',
   '1': '1'
+  'A': 'A'
 };
 
 /**
@@ -53,6 +54,7 @@ export const USER_LEVEL_PERMISSIONS = {
   'Angelo': [3],            // Solo livello 3
   '3': [3, 4],              // Livelli 3 e 4
   '1': [1, 2, 3, 4, 5]      // Tutti i livelli (admin)
+  'A': [3]
 };
 
 // ═══════════════════════════════════════════════════════════════════════
