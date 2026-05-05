@@ -196,7 +196,6 @@ const TradingCalculator = () => {
   const [hasTakeProfit, setHasTakeProfit] = useState(false);
   const [fundingTradersPair, setFundingTradersPair] = useState('XAUUSD'); // Nuovo stato per la coppia di FundingTraders
   const [fundingTradersPercentage, setFundingTradersPercentage] = useState('50'); // Stato per la percentuale di FundingTraders
-  const [the5ersPair, setThe5ersPair] = useState('XAUUSD'); // Stato per la coppia di The5ers (XAUUSD predefinito, EURUSD opzionale)
   
   // Stati per Fase Real
   const [prop1, setProp1] = useState('');
@@ -272,16 +271,12 @@ const TradingCalculator = () => {
         setPrezzoApprox(5000);
       }
     } else if (currentSheet === 'The5ers') {
-      // Per The5ers: usa EURUSD solo se hasTakeProfit=true E operazione=2 E selezionato manualmente
-      if (the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) {
-        setPrezzoApprox(1.10000);
-      } else {
-        setPrezzoApprox(5000);
-      }
+      // The5ers usa solo XAUUSD
+      setPrezzoApprox(5000);
     }
     // Reset prezzo ingresso quando cambia operazione per tutti i fogli
     setPrezzoIngresso('');
-  }, [operazione, currentSheet, hasTakeProfit, capitaleSuProp, livelloUtente, fundingTradersPair, the5ersPair]);
+  }, [operazione, currentSheet, hasTakeProfit, capitaleSuProp, livelloUtente, fundingTradersPair]);
 
   // Gestisce il reset e l'adattamento della percentuale FundingTraders in base al livello
   useEffect(() => {
@@ -865,34 +860,6 @@ const TradingCalculator = () => {
       
       // The5ers ha valori hardcoded diversi per alcuni livelli
       if (isThe5ers) {
-        // Logica speciale per EURUSD (solo con 2TP=Sì E operazione successiva E EURUSD selezionato)
-        if (the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) {
-          const capitaleDefault = [5000, 10000, 25000, 50000, 100000][livelloUtente - 1];
-          const sogliaSup = capitaleDefault * 1.02;
-          const sogliaInf = capitaleDefault * 0.98;
-          
-          // CASO 1: capitaleSuProp > sogliaSup → continua con logica normale sotto
-          if (capitaleSuProp > sogliaSup) {
-            // Continua con la logica XAUUSD standard sotto
-          }
-          // CASO 2: sogliaInf < capitaleSuProp ≤ sogliaSup → formule fisse
-          else if (capitaleSuProp > sogliaInf && capitaleSuProp <= sogliaSup) {
-            if (fase === 1) {
-              return (capitaleDefault * 1.04) - capitaleSuProp;
-            } else {
-              return capitaleDefault * 0.025;
-            }
-          }
-          // CASO 3: capitaleSuProp ≤ sogliaInf → formule dinamiche
-          else {
-            if (fase === 1) {
-              return (capitaleDefault * 1.04) - capitaleSuProp;
-            } else {
-              return (capitaleDefault * 1.02) - capitaleSuProp;
-            }
-          }
-        }
-        
         const the5ersValues = {
           1: { fase1: 5402, fase2: 5252, thresholdFase2: 4000 },
           2: { fase1: 10804, fase2: 10504, thresholdFase2: 8000 },
@@ -1170,33 +1137,6 @@ const TradingCalculator = () => {
         }
       }
       
-      // Logica speciale per The5ers EURUSD (solo con 2TP=Sì E operazione successiva E EURUSD selezionato)
-      if (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) {
-        const capitaleDefault = [5000, 10000, 25000, 50000, 100000][livelloUtente - 1];
-        const sogliaSup = capitaleDefault * 1.02;
-        const sogliaInf = capitaleDefault * 0.98;
-        
-        // CASO 1: capitaleSuProp > sogliaSup → usa logica normale
-        if (capitaleSuProp > sogliaSup) {
-          // Continua con la logica XAUUSD standard sotto
-        }
-        // CASO 2: sogliaInf < capitaleSuProp ≤ sogliaSup → formula fissa
-        else if (capitaleSuProp > sogliaInf && capitaleSuProp <= sogliaSup) {
-          if (fase === 1) {
-            return (capitaleDefault * 1.10) - capitaleSuProp;
-          } else {
-            return capitaleDefault * 0.051 - capitaleSuProp;
-          }
-        }
-        // CASO 3: capitaleSuProp ≤ sogliaInf → formula dinamica
-        else {
-          if (fase === 1) {
-            return (capitaleDefault * 1.10) - capitaleSuProp;
-          } else {
-            return (capitaleDefault * 1.051) - capitaleSuProp;
-          }
-        }
-      }
       
       // Logica speciale per Fintokei in operazione = successiva
       if (isFintokei && operazione === 2) {
@@ -1539,68 +1479,24 @@ const TradingCalculator = () => {
     const adjustments1 = adjustments.adj1;
     const adjustments2 = adjustments.adj2;
     
-    // Applicazione degli aggiustamenti
-    if (maxPips < soglie[livelloUtente - 1]) {
-      lottiAxi = m8 - adjustments1[livelloUtente - 1];
-    } else if (maxPips < soglie2[livelloUtente - 1]) {
-      lottiAxi = m8 - adjustments2[livelloUtente - 1];
+    // Applicazione degli aggiustamenti (The5ers salta gli adjustments e usa solo m8)
+    if (!isThe5ers) {
+      if (maxPips < soglie[livelloUtente - 1]) {
+        lottiAxi = m8 - adjustments1[livelloUtente - 1];
+      } else if (maxPips < soglie2[livelloUtente - 1]) {
+        lottiAxi = m8 - adjustments2[livelloUtente - 1];
+      }
     }
 
     const lottiProp = lottiAxi / l8_base[livelloUtente - 1];
     
     // Logica speciale per Lotti Axi su The5ers, Fintokei, FundingPips e FundingTraders quando "Primo giorno completato?" è su "No"
-    // PER THE5ERS: se operazione = 2 con XAUUSD, SEMPRE usa la logica speciale, anche con hasTakeProfit = true
     let finalLottiAxi = lottiAxi;
     let finalLottiProp = lottiProp;
     
-    if ((isThe5ers && operazione === 2 && the5ersPair === 'XAUUSD') || ((isThe5ers || isFintokei || isFundingPips || isFundingTraders) && !hasTakeProfit)) {
-      // The5ers con EURUSD usa logica soglie (solo con 2TP=Sì E operazione successiva E EURUSD selezionato)
-      if (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) {
-        // Usa le stesse soglie di FundingPips/FundingTraders basate su Stop Loss
-        const soglieLotti = (fase === 1 ? {
-          1: { soglia1: 70, soglia2: 140, soglia3: 200, lotto1: 0.01, lotto2: 0.02, lotto3: 0.03, lotto4: 0.04 },
-          2: { soglia0: 70, soglia1: 140, soglia2: 280, soglia3: 400, lotto0: 0.01, lotto1: 0.02, lotto2: 0.04, lotto3: 0.06, lotto4: 0.08 },
-          3: { soglia0: 140, soglia1: 280, soglia2: 560, soglia3: 800, lotto0: 0.02, lotto1: 0.04, lotto2: 0.08, lotto3: 0.12, lotto4: 0.16 },
-          4: { soglia0: 350, soglia1: 700, soglia2: 1400, soglia3: 2000, lotto0: 0.05, lotto1: 0.10, lotto2: 0.20, lotto3: 0.30, lotto4: 0.40 },
-          5: { soglia0: 700, soglia1: 1400, soglia2: 2800, soglia3: 4000, lotto0: 0.10, lotto1: 0.20, lotto2: 0.40, lotto3: 0.60, lotto4: 0.80 }
-        } : {
-          1: { soglia1: 70, soglia2: 140, soglia3: 200, lotto1: 0.02, lotto2: 0.03, lotto3: 0.04, lotto4: 0.06 },
-          2: { soglia0: 70, soglia1: 140, soglia2: 280, soglia3: 400, lotto0: 0.02, lotto1: 0.04, lotto2: 0.06, lotto3: 0.08, lotto4: 0.12 },
-          3: { soglia0: 140, soglia1: 280, soglia2: 560, soglia3: 800, lotto0: 0.04, lotto1: 0.08, lotto2: 0.12, lotto3: 0.16, lotto4: 0.24 },
-          4: { soglia0: 350, soglia1: 700, soglia2: 1400, soglia3: 2000, lotto0: 0.10, lotto1: 0.20, lotto2: 0.30, lotto3: 0.40, lotto4: 0.60 },
-          5: { soglia0: 700, soglia1: 1400, soglia2: 2800, soglia3: 4000, lotto0: 0.20, lotto1: 0.40, lotto2: 0.60, lotto3: 0.80, lotto4: 1.20 }
-        });
-        
-        const livello = soglieLotti[livelloUtente];
-        
-        if (livelloUtente === 1) {
-          if (finalStopLossPips < livello.soglia1) {
-            finalLottiAxi = livello.lotto1;
-          } else if (finalStopLossPips >= livello.soglia1 && finalStopLossPips < livello.soglia2) {
-            finalLottiAxi = livello.lotto2;
-          } else if (finalStopLossPips >= livello.soglia2 && finalStopLossPips < livello.soglia3) {
-            finalLottiAxi = livello.lotto3;
-          } else if (finalStopLossPips >= livello.soglia3) {
-            finalLottiAxi = livello.lotto4;
-          }
-        } else {
-          if (finalStopLossPips < livello.soglia0) {
-            finalLottiAxi = livello.lotto0;
-          } else if (finalStopLossPips >= livello.soglia0 && finalStopLossPips < livello.soglia1) {
-            finalLottiAxi = livello.lotto1;
-          } else if (finalStopLossPips >= livello.soglia1 && finalStopLossPips < livello.soglia2) {
-            finalLottiAxi = livello.lotto2;
-          } else if (finalStopLossPips >= livello.soglia2 && finalStopLossPips < livello.soglia3) {
-            finalLottiAxi = livello.lotto3;
-          } else if (finalStopLossPips >= livello.soglia3) {
-            finalLottiAxi = livello.lotto4;
-          }
-        }
-        
-        finalLottiProp = finalLottiAxi / l8_base[livelloUtente - 1];
-      }
-      // The5ers con XAUUSD usa formula basata su Take Profit
-      else if (isThe5ers) {
+    if ((isThe5ers || isFintokei || isFundingPips || isFundingTraders) && !hasTakeProfit) {
+      // The5ers usa formula basata su Take Profit (solo operazione prima con hasTakeProfit=false)
+      if (isThe5ers) {
         // Nuova logica per The5ers: Lotti Broker basati su Take Profit Prop
         // Livello 4 usa gli STESSI divisori del livello 3
         const divisoriFase1 = [7500, 15000, 18750, 18750, 75000];
@@ -1688,13 +1584,11 @@ const TradingCalculator = () => {
     // Calcolo commissioni in base al simbolo
     const capitaleDefault = getCapitalTiers(currentSheet)[livelloUtente - 1];
     const isEURUSD = (isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
-                  || (isFundingTraders && operazione === 2)
-                  || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2);
+                  || (isFundingTraders && operazione === 2);
     const commissioni = finalLottiAxi * (isEURUSD ? 10 : 40);
     
     const moltiplicatore = ((isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
-                         || (isFundingTraders && operazione === 2)
-                         || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2)) ? 100000 : 100; // XAUUSD per tutti gli altri
+                         || (isFundingTraders && operazione === 2)) ? 100000 : 100; // XAUUSD per tutti gli altri
     
     const stopLossPrezzo = tipoOperazione === 'BUY' ? 
       prezzoIngresso + finalStopLossPips / (finalLottiProp * moltiplicatore) :
@@ -1707,8 +1601,7 @@ const TradingCalculator = () => {
     const stopLossAxiPrezzo = tipoOperazione === 'BUY'
       ? takeProfitPrezzo + (() => {
           const isEURUSD = (isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
-                        || (isFundingTraders && operazione === 2)
-                        || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2);
+                        || (isFundingTraders && operazione === 2);
           if (isEURUSD) {
             // EURUSD: offset = (spread eurusd prop + spread eurusd broker) / 200000
             const providerKey = currentSheet.toLowerCase();
@@ -1725,8 +1618,7 @@ const TradingCalculator = () => {
         })()
       : takeProfitPrezzo - (() => {
           const isEURUSD = (isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
-                        || (isFundingTraders && operazione === 2)
-                        || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2);
+                        || (isFundingTraders && operazione === 2);
           if (isEURUSD) {
             // EURUSD: offset = (spread eurusd prop + spread eurusd broker) / 200000
             const providerKey = currentSheet.toLowerCase();
@@ -1745,8 +1637,7 @@ const TradingCalculator = () => {
     const takeProfitAxiPrezzo = tipoOperazione === 'BUY'
       ? stopLossPrezzo + (() => {
           const isEURUSD = (isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
-                        || (isFundingTraders && operazione === 2)
-                        || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2);
+                        || (isFundingTraders && operazione === 2);
           if (isEURUSD) {
             // EURUSD: offset = (spread eurusd prop + spread eurusd broker) / 200000
             const providerKey = currentSheet.toLowerCase();
@@ -1763,8 +1654,7 @@ const TradingCalculator = () => {
         })()
       : stopLossPrezzo - (() => {
           const isEURUSD = (isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
-                        || (isFundingTraders && operazione === 2)
-                        || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2);
+                        || (isFundingTraders && operazione === 2);
           if (isEURUSD) {
             // EURUSD: offset = (spread eurusd prop + spread eurusd broker) / 200000
             const providerKey = currentSheet.toLowerCase();
@@ -1807,21 +1697,17 @@ const TradingCalculator = () => {
       lottiAxi: Math.round(finalLottiAxi * 100) / 100,
       stopLossPips: Math.round(finalStopLossPips),
       stopLossPrezzo: ((currentSheet === 'MasterFunders' && operazione === 2 && capitaleSuProp < capitaleDefault) 
-                    || (currentSheet === 'FundingTraders' && operazione === 2)
-                    || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2)) 
+                    || (currentSheet === 'FundingTraders' && operazione === 2)) 
                     ? Math.round(stopLossPrezzo * 100000) / 100000 : Math.round(stopLossPrezzo * 100) / 100,
       stopLossAxiPrezzo: ((currentSheet === 'MasterFunders' && operazione === 2 && capitaleSuProp < capitaleDefault) 
-                       || (currentSheet === 'FundingTraders' && operazione === 2)
-                       || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2)) 
+                       || (currentSheet === 'FundingTraders' && operazione === 2)) 
                        ? Math.round(stopLossAxiPrezzo * 100000) / 100000 : Math.round(stopLossAxiPrezzo * 100) / 100,
       takeProfitPips: Math.round(finalTakeProfitPips),
       takeProfitPrezzo: ((currentSheet === 'MasterFunders' && operazione === 2 && capitaleSuProp < capitaleDefault) 
-                      || (currentSheet === 'FundingTraders' && operazione === 2)
-                      || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2)) 
+                      || (currentSheet === 'FundingTraders' && operazione === 2)) 
                       ? Math.round(takeProfitPrezzo * 100000) / 100000 : Math.round(takeProfitPrezzo * 100) / 100,
       takeProfitAxiPrezzo: ((currentSheet === 'MasterFunders' && operazione === 2 && capitaleSuProp < capitaleDefault) 
-                         || (currentSheet === 'FundingTraders' && operazione === 2)
-                         || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2)) 
+                         || (currentSheet === 'FundingTraders' && operazione === 2)) 
                          ? Math.round(takeProfitAxiPrezzo * 100000) / 100000 : Math.round(takeProfitAxiPrezzo * 100) / 100,
       l8_base_current: l8_base[livelloUtente - 1],
       // Dollari per OneFunded (se applicabile)
@@ -2988,25 +2874,6 @@ const TradingCalculator = () => {
                   </div>
                 )}
 
-                {/* Selettore coppia per The5ers (solo in operazione successiva) */}
-                {currentSheet === 'The5ers' && operazione === 2 && (
-                  <div className="bg-amber-50 rounded-lg p-4 mb-6 border border-amber-200">
-                    <div className="max-w-xs">
-                      <label className="block text-sm font-semibold text-amber-800 mb-2">
-                        Coppia di trading
-                      </label>
-                      <select 
-                        value={the5ersPair} 
-                        onChange={(e) => setThe5ersPair(e.target.value)} 
-                        className="w-full px-3 py-2 text-sm border-2 border-amber-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 bg-white font-medium"
-                      >
-                        <option value="XAUUSD">XAUUSD (Oro)</option>
-                        <option value="EURUSD">EURUSD</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
                 {/* Lotti */}
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <h3 className="text-lg font-semibold mb-4">Parametri Lotti</h3>
@@ -3075,7 +2942,7 @@ const TradingCalculator = () => {
                     <div className="bg-white rounded-lg p-4 text-center border-l-4 border-green-400">
                       <div className="text-xs text-gray-500 mb-1">TAKE PROFIT BROKER</div>
                       <div className="text-lg font-bold text-green-600">{risultati.stopLossAxiPrezzo}</div>
-                      <div className="text-xs text-gray-500">{(risultati.takeProfitPips * risultati.l8_base_current - (risultati.lottiAxi * ((currentSheet === 'MasterFunders' && operazione === 2) || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) ? 10 : 40))).toFixed(2)} $</div>
+                      <div className="text-xs text-gray-500">{(risultati.takeProfitPips * risultati.l8_base_current - (risultati.lottiAxi * ((currentSheet === 'MasterFunders' && operazione === 2) ? 10 : 40))).toFixed(2)} $</div>
                     </div>
                     <div className="bg-white rounded-lg p-4 text-center border-l-4 border-red-500">
                       <div className="text-xs text-gray-500 mb-1">STOP LOSS PROP</div>
@@ -3085,7 +2952,7 @@ const TradingCalculator = () => {
                     <div className="bg-white rounded-lg p-4 text-center border-l-4 border-red-400">
                       <div className="text-xs text-gray-500 mb-1">STOP LOSS BROKER</div>
                       <div className="text-lg font-bold text-red-600">{risultati.takeProfitAxiPrezzo}</div>
-                      <div className="text-xs text-gray-500">-{(risultati.stopLossPips * risultati.l8_base_current + (risultati.lottiAxi * ((currentSheet === 'MasterFunders' && operazione === 2) || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) ? 10 : 40))).toFixed(2)} $</div>
+                      <div className="text-xs text-gray-500">-{(risultati.stopLossPips * risultati.l8_base_current + (risultati.lottiAxi * ((currentSheet === 'MasterFunders' && operazione === 2) ? 10 : 40))).toFixed(2)} $</div>
                     </div>
                   </div>
                 </div>
