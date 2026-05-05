@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
+// UTENTI - Configurazione inline
 const DEFAULT_CREDENTIALS = {
   'FPia': '500',
   'AZuc': '1000',
@@ -49,7 +50,7 @@ const getCapitalTiers = (sheet) => {
 
 const SOGLIA_MIN = {
   'fundingtraders': [4502, 9004, 22510, 45020, 90040],
-  'the5ers': [4502, 9004, 18008, 54024, 90040],
+  'the5ers': [4502, 9004, 22510, 45020, 90040],
   'masterfunders': [4505, 9010, 22525, 45050, 90100],
   'fundednext': [4602, 9204, 23010, 46020, 92040],
   'onefunded': [4602, 9204, 23010, 46020, 92040],
@@ -63,7 +64,7 @@ const SOGLIA_MIN = {
 
 const PERDITA_MAX = {
   'fundingtraders': [80, 160, 400, 800, 1600],
-  'the5ers': [200, 400, 800, 2400, 4000],
+  'the5ers': [200, 400, 1000, 2000, 4000],
   'masterfunders': [130, 260, 650, 1300, 2600],
   'fundednext': [160, 320, 800, 1600, 3200],
   'onefunded': [160, 320, 800, 1600, 3200],
@@ -195,6 +196,7 @@ const TradingCalculator = () => {
   const [hasTakeProfit, setHasTakeProfit] = useState(false);
   const [fundingTradersPair, setFundingTradersPair] = useState('XAUUSD'); // Nuovo stato per la coppia di FundingTraders
   const [fundingTradersPercentage, setFundingTradersPercentage] = useState('50'); // Stato per la percentuale di FundingTraders
+  const [the5ersPair, setThe5ersPair] = useState('XAUUSD'); // Stato per la coppia di The5ers (XAUUSD predefinito, EURUSD opzionale)
   
   // Stati per Fase Real
   const [prop1, setProp1] = useState('');
@@ -270,8 +272,8 @@ const TradingCalculator = () => {
         setPrezzoApprox(5000);
       }
     } else if (currentSheet === 'The5ers') {
-      // Per The5ers livelli 4 e 5: usa EURUSD in operazione successiva quando "primo giorno completato?" = Sì
-      if (operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5)) {
+      // Per The5ers: usa EURUSD solo se hasTakeProfit=true E operazione=2 E selezionato manualmente
+      if (the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) {
         setPrezzoApprox(1.10000);
       } else {
         setPrezzoApprox(5000);
@@ -279,7 +281,7 @@ const TradingCalculator = () => {
     }
     // Reset prezzo ingresso quando cambia operazione per tutti i fogli
     setPrezzoIngresso('');
-  }, [operazione, currentSheet, hasTakeProfit, capitaleSuProp, livelloUtente, fundingTradersPair]);
+  }, [operazione, currentSheet, hasTakeProfit, capitaleSuProp, livelloUtente, fundingTradersPair, the5ersPair]);
 
   // Gestisce il reset e l'adattamento della percentuale FundingTraders in base al livello
   useEffect(() => {
@@ -295,7 +297,7 @@ const TradingCalculator = () => {
   useEffect(() => {
     const getCapitaleDefault = () => {
       return currentSheet === 'The5ers' 
-        ? [5000, 10000, 20000, 60000, 100000][livelloUtente - 1]
+        ? [5000, 10000, 25000, 50000, 100000][livelloUtente - 1]
         : currentSheet === 'Fintokei'
         ? [5000, 10000, 20000, 50000, 100000][livelloUtente - 1]
         : getCapitalTiers(currentSheet)[livelloUtente - 1];
@@ -409,8 +411,8 @@ const TradingCalculator = () => {
         return (livello >= 4) ? prezzo / 10 : prezzo / 15;
       },
       l8_base: {
-        fase1: [0.18, 0.18, 0.25, 0.2, 0.21],
-        fase2: [0.3, 0.3, 0.36, 0.3, 0.3]
+        fase1: [0.18, 0.18, 0.18, 0.2, 0.21],
+        fase2: [0.3, 0.3, 0.3, 0.3, 0.3]
       },
       soglie: [250, 500, 1000, 3000, 5000],
       soglie2: [420, 840, 1680, 5040, 8400],
@@ -863,15 +865,60 @@ const TradingCalculator = () => {
       
       // The5ers ha valori hardcoded diversi per alcuni livelli
       if (isThe5ers) {
+        // Logica speciale per EURUSD (solo con 2TP=Sì E operazione successiva E EURUSD selezionato)
+        if (the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) {
+          const capitaleDefault = [5000, 10000, 25000, 50000, 100000][livelloUtente - 1];
+          const sogliaSup = capitaleDefault * 1.02;
+          const sogliaInf = capitaleDefault * 0.98;
+          
+          // CASO 1: capitaleSuProp > sogliaSup → continua con logica normale sotto
+          if (capitaleSuProp > sogliaSup) {
+            // Continua con la logica XAUUSD standard sotto
+          }
+          // CASO 2: sogliaInf < capitaleSuProp ≤ sogliaSup → formule fisse
+          else if (capitaleSuProp > sogliaInf && capitaleSuProp <= sogliaSup) {
+            if (fase === 1) {
+              return (capitaleDefault * 1.04) - capitaleSuProp;
+            } else {
+              return capitaleDefault * 0.025;
+            }
+          }
+          // CASO 3: capitaleSuProp ≤ sogliaInf → formule dinamiche
+          else {
+            if (fase === 1) {
+              return (capitaleDefault * 1.04) - capitaleSuProp;
+            } else {
+              return (capitaleDefault * 1.02) - capitaleSuProp;
+            }
+          }
+        }
+        
         const the5ersValues = {
           1: { fase1: 5402, fase2: 5252, thresholdFase2: 4000 },
           2: { fase1: 10804, fase2: 10504, thresholdFase2: 8000 },
-          3: { fase1: 21608, fase2: 21008, thresholdFase2: 16000 },
-          4: { fase1: 64824, fase2: 63024, thresholdFase2: 48000 },
+          3: { fase1: 27010, fase2: 26260, thresholdFase2: 20000 },
+          4: { fase1: 54020, fase2: 52520, thresholdFase2: 40000 },
           5: { fase1: 108040, fase2: 105040, thresholdFase2: 80000 }
         };
         
         const values = the5ersValues[livelloUtente];
+        
+        // Logica speciale per livelli 3 e 4 con "2 Take Profit" = Sì, Operazione Prima
+        if ((livelloUtente === 3 || livelloUtente === 4) && hasTakeProfit && operazione === 1) {
+          if (livelloUtente === 3) {
+            if (fase === 1) {
+              return (27000 - capitaleSuProp) / 2.5;
+            } else {
+              return (26250 - capitaleSuProp) / 2.2;
+            }
+          } else { // livello 4
+            if (fase === 1) {
+              return (54000 - capitaleSuProp) / 2.5;
+            } else {
+              return (52500 - capitaleSuProp) / 2.2;
+            }
+          }
+        }
         
         if (fase === 1) {
           if (operazione === 1) {
@@ -1096,6 +1143,61 @@ const TradingCalculator = () => {
 
     // Calcolo Take Profit ottimizzato con soglie parametrizzabili
     const getTakeProfit = () => {
+      // Logica speciale per The5ers livelli 3 e 4 (solo con 2 Take Profit = Sì)
+      if (isThe5ers && (livelloUtente === 3 || livelloUtente === 4) && hasTakeProfit) {
+        if (livelloUtente === 3) {
+          // Livello 3: Take Profit Prop = $1,050 normalmente
+          // Se (cap prop - 22,500) < 1,050 → TP = cap prop - 22,510
+          const takeProfitNormale = 1050;
+          const differenza = capitaleSuProp - 22500;
+          
+          if (differenza < takeProfitNormale) {
+            return capitaleSuProp - 22510;
+          } else {
+            return takeProfitNormale;
+          }
+        } else { // livello 4
+          // Livello 4: Take Profit Prop = $2,100 normalmente
+          // Se (cap prop - 45,000) < 2,100 → TP = cap prop - 45,020
+          const takeProfitNormale = 2100;
+          const differenza = capitaleSuProp - 45000;
+          
+          if (differenza < takeProfitNormale) {
+            return capitaleSuProp - 45020;
+          } else {
+            return takeProfitNormale;
+          }
+        }
+      }
+      
+      // Logica speciale per The5ers EURUSD (solo con 2TP=Sì E operazione successiva E EURUSD selezionato)
+      if (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) {
+        const capitaleDefault = [5000, 10000, 25000, 50000, 100000][livelloUtente - 1];
+        const sogliaSup = capitaleDefault * 1.02;
+        const sogliaInf = capitaleDefault * 0.98;
+        
+        // CASO 1: capitaleSuProp > sogliaSup → usa logica normale
+        if (capitaleSuProp > sogliaSup) {
+          // Continua con la logica XAUUSD standard sotto
+        }
+        // CASO 2: sogliaInf < capitaleSuProp ≤ sogliaSup → formula fissa
+        else if (capitaleSuProp > sogliaInf && capitaleSuProp <= sogliaSup) {
+          if (fase === 1) {
+            return (capitaleDefault * 1.10) - capitaleSuProp;
+          } else {
+            return capitaleDefault * 0.051 - capitaleSuProp;
+          }
+        }
+        // CASO 3: capitaleSuProp ≤ sogliaInf → formula dinamica
+        else {
+          if (fase === 1) {
+            return (capitaleDefault * 1.10) - capitaleSuProp;
+          } else {
+            return (capitaleDefault * 1.051) - capitaleSuProp;
+          }
+        }
+      }
+      
       // Logica speciale per Fintokei in operazione = successiva
       if (isFintokei && operazione === 2) {
         const moltiplicatori = [1, 2, 4, 10, 20];
@@ -1212,7 +1314,7 @@ const TradingCalculator = () => {
       
       // Calcolo capitale di default e costanti per il livello corrente
       const capitaliDefault = currentSheet === 'The5ers' 
-        ? [5000, 10000, 20000, 60000, 100000]
+        ? [5000, 10000, 25000, 50000, 100000]
         : currentSheet === 'Fintokei'
         ? [5000, 10000, 20000, 50000, 100000]
         : getCapitalTiers(currentSheet);
@@ -1245,7 +1347,7 @@ const TradingCalculator = () => {
             masterfunders: (operazione === 1 || capitaleSuProp >= capitaleDefault) ? 
               (isSogliaExceeded ? [237, 474, 1185, 2370, 4740] : [245, 490, 1225, 2450, 4900]) :
               (isSogliaExceeded ? [210, 420, 1050, 2100, 4200] : [245, 490, 1225, 2450, 4900]),
-            the5ers: isSogliaExceeded ? (fase === 1 ? [235, 470, 1190, 2380, 4760] : [230, 460, 1170, 2340, 4680]) : [245, 490, 1225, 2450, 4900],
+            the5ers: isSogliaExceeded ? (fase === 1 ? [235, 470, 1488, 2976, 4760] : [230, 460, 1463, 2926, 4680]) : [245, 490, 1225, 2450, 4900],
             fintokei: isSogliaExceeded ? [135, 270, 540, 1350, 2700] : [135, 270, 540, 1350, 2700],
             fundednext: isSogliaExceeded ? (fase === 1 ? [190, 380, 950, 1900, 3800] : [185, 370, 925, 1850, 3700]) : [198, 396, 990, 1980, 3960],
             onefunded: isSogliaExceeded ? (fase === 1 ? [190, 380, 950, 1900, 3800] : [185, 370, 925, 1850, 3700]) : [198, 396, 990, 1980, 3960]
@@ -1326,7 +1428,7 @@ const TradingCalculator = () => {
     if ((isThe5ers || isFintokei || isFundingPips || isFundingTraders) && !hasTakeProfit) {
       // Condizione speciale per The5ers tutti i livelli, operazione successiva
       if (isThe5ers && operazione === 2) {
-        const valoriBase = [30, 60, 120, 360, 600]; // Valori base per livelli 1-5
+        const valoriBase = [30, 60, 120, 240, 600]; // Valori base proporzionali: Cap/Valore costante per liv 3-4
         const valoreLivello = valoriBase[livelloUtente - 1];
         const sogliaMin = SOGLIA_MIN['the5ers'][livelloUtente - 1];
         
@@ -1355,8 +1457,8 @@ const TradingCalculator = () => {
           // Soglie The5ers (usate anche da FundingPips)
           1: { alto: 4950, medio: 4900, base: 5000, stopAlto: 30, stopMedio: 50, minCapitale: 4502, sogliaSpeciale: 4725 },
           2: { alto: 9900, medio: 9800, base: 10000, stopAlto: 60, stopMedio: 100, minCapitale: 9004, sogliaSpeciale: 9450 },
-          3: { alto: 19800, medio: 19600, base: 20000, stopAlto: 120, stopMedio: 200, minCapitale: 18008, sogliaSpeciale: 18900 },
-          4: { alto: 59400, medio: 58800, base: 60000, stopAlto: 360, stopMedio: 600, minCapitale: 54024, sogliaSpeciale: 56700 },
+          3: { alto: 24750, medio: 24500, base: 25000, stopAlto: 150, stopMedio: 250, minCapitale: 22510, sogliaSpeciale: 23625 },
+          4: { alto: 49500, medio: 49000, base: 50000, stopAlto: 300, stopMedio: 500, minCapitale: 45020, sogliaSpeciale: 47250 },
           5: { alto: 99000, medio: 98000, base: 100000, stopAlto: 600, stopMedio: 1000, minCapitale: 90040, sogliaSpeciale: 94500 }
         };
         
@@ -1447,18 +1549,69 @@ const TradingCalculator = () => {
     const lottiProp = lottiAxi / l8_base[livelloUtente - 1];
     
     // Logica speciale per Lotti Axi su The5ers, Fintokei, FundingPips e FundingTraders quando "Primo giorno completato?" è su "No"
+    // PER THE5ERS: se operazione = 2 con XAUUSD, SEMPRE usa la logica speciale, anche con hasTakeProfit = true
     let finalLottiAxi = lottiAxi;
     let finalLottiProp = lottiProp;
     
-    if ((isThe5ers || isFintokei || isFundingPips || isFundingTraders) && !hasTakeProfit) {
-      if (isThe5ers) {
-        // Nuova logica per The5ers: Lotti Broker basati su Take Profit Prop
-        if (fase === 1) {
-          // Fase 1: take profit prop / 7500, arrotondato per eccesso al secondo decimale
-          finalLottiAxi = Math.ceil((finalTakeProfitPips / 7500) * 100) / 100;
+    if ((isThe5ers && operazione === 2 && the5ersPair === 'XAUUSD') || ((isThe5ers || isFintokei || isFundingPips || isFundingTraders) && !hasTakeProfit)) {
+      // The5ers con EURUSD usa logica soglie (solo con 2TP=Sì E operazione successiva E EURUSD selezionato)
+      if (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) {
+        // Usa le stesse soglie di FundingPips/FundingTraders basate su Stop Loss
+        const soglieLotti = (fase === 1 ? {
+          1: { soglia1: 70, soglia2: 140, soglia3: 200, lotto1: 0.01, lotto2: 0.02, lotto3: 0.03, lotto4: 0.04 },
+          2: { soglia0: 70, soglia1: 140, soglia2: 280, soglia3: 400, lotto0: 0.01, lotto1: 0.02, lotto2: 0.04, lotto3: 0.06, lotto4: 0.08 },
+          3: { soglia0: 140, soglia1: 280, soglia2: 560, soglia3: 800, lotto0: 0.02, lotto1: 0.04, lotto2: 0.08, lotto3: 0.12, lotto4: 0.16 },
+          4: { soglia0: 350, soglia1: 700, soglia2: 1400, soglia3: 2000, lotto0: 0.05, lotto1: 0.10, lotto2: 0.20, lotto3: 0.30, lotto4: 0.40 },
+          5: { soglia0: 700, soglia1: 1400, soglia2: 2800, soglia3: 4000, lotto0: 0.10, lotto1: 0.20, lotto2: 0.40, lotto3: 0.60, lotto4: 0.80 }
+        } : {
+          1: { soglia1: 70, soglia2: 140, soglia3: 200, lotto1: 0.02, lotto2: 0.03, lotto3: 0.04, lotto4: 0.06 },
+          2: { soglia0: 70, soglia1: 140, soglia2: 280, soglia3: 400, lotto0: 0.02, lotto1: 0.04, lotto2: 0.06, lotto3: 0.08, lotto4: 0.12 },
+          3: { soglia0: 140, soglia1: 280, soglia2: 560, soglia3: 800, lotto0: 0.04, lotto1: 0.08, lotto2: 0.12, lotto3: 0.16, lotto4: 0.24 },
+          4: { soglia0: 350, soglia1: 700, soglia2: 1400, soglia3: 2000, lotto0: 0.10, lotto1: 0.20, lotto2: 0.30, lotto3: 0.40, lotto4: 0.60 },
+          5: { soglia0: 700, soglia1: 1400, soglia2: 2800, soglia3: 4000, lotto0: 0.20, lotto1: 0.40, lotto2: 0.60, lotto3: 0.80, lotto4: 1.20 }
+        });
+        
+        const livello = soglieLotti[livelloUtente];
+        
+        if (livelloUtente === 1) {
+          if (finalStopLossPips < livello.soglia1) {
+            finalLottiAxi = livello.lotto1;
+          } else if (finalStopLossPips >= livello.soglia1 && finalStopLossPips < livello.soglia2) {
+            finalLottiAxi = livello.lotto2;
+          } else if (finalStopLossPips >= livello.soglia2 && finalStopLossPips < livello.soglia3) {
+            finalLottiAxi = livello.lotto3;
+          } else if (finalStopLossPips >= livello.soglia3) {
+            finalLottiAxi = livello.lotto4;
+          }
         } else {
-          // Fase 2: take profit prop / 5000, arrotondato per eccesso al secondo decimale
-          finalLottiAxi = Math.ceil((finalTakeProfitPips / 5000) * 100) / 100;
+          if (finalStopLossPips < livello.soglia0) {
+            finalLottiAxi = livello.lotto0;
+          } else if (finalStopLossPips >= livello.soglia0 && finalStopLossPips < livello.soglia1) {
+            finalLottiAxi = livello.lotto1;
+          } else if (finalStopLossPips >= livello.soglia1 && finalStopLossPips < livello.soglia2) {
+            finalLottiAxi = livello.lotto2;
+          } else if (finalStopLossPips >= livello.soglia2 && finalStopLossPips < livello.soglia3) {
+            finalLottiAxi = livello.lotto3;
+          } else if (finalStopLossPips >= livello.soglia3) {
+            finalLottiAxi = livello.lotto4;
+          }
+        }
+        
+        finalLottiProp = finalLottiAxi / l8_base[livelloUtente - 1];
+      }
+      // The5ers con XAUUSD usa formula basata su Take Profit
+      else if (isThe5ers) {
+        // Nuova logica per The5ers: Lotti Broker basati su Take Profit Prop
+        // Livello 4 usa gli STESSI divisori del livello 3
+        const divisoriFase1 = [7500, 15000, 18750, 18750, 75000];
+        const divisoriFase2 = [5000, 10000, 12500, 12500, 50000];
+        
+        if (fase === 1) {
+          // Fase 1: take profit prop / divisore livello, arrotondato per eccesso al secondo decimale
+          finalLottiAxi = Math.ceil((finalTakeProfitPips / divisoriFase1[livelloUtente - 1]) * 100) / 100;
+        } else {
+          // Fase 2: take profit prop / divisore livello, arrotondato per eccesso al secondo decimale
+          finalLottiAxi = Math.ceil((finalTakeProfitPips / divisoriFase2[livelloUtente - 1]) * 100) / 100;
         }
         
         // Calcolo Lotti Prop speciale: Lotti Axi / l8_base
@@ -1536,12 +1689,12 @@ const TradingCalculator = () => {
     const capitaleDefault = getCapitalTiers(currentSheet)[livelloUtente - 1];
     const isEURUSD = (isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
                   || (isFundingTraders && operazione === 2)
-                  || (isThe5ers && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5));
+                  || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2);
     const commissioni = finalLottiAxi * (isEURUSD ? 10 : 40);
     
     const moltiplicatore = ((isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
                          || (isFundingTraders && operazione === 2)
-                         || (isThe5ers && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5))) ? 100000 : 100; // XAUUSD per tutti gli altri
+                         || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2)) ? 100000 : 100; // XAUUSD per tutti gli altri
     
     const stopLossPrezzo = tipoOperazione === 'BUY' ? 
       prezzoIngresso + finalStopLossPips / (finalLottiProp * moltiplicatore) :
@@ -1555,7 +1708,7 @@ const TradingCalculator = () => {
       ? takeProfitPrezzo + (() => {
           const isEURUSD = (isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
                         || (isFundingTraders && operazione === 2)
-                        || (isThe5ers && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5));
+                        || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2);
           if (isEURUSD) {
             // EURUSD: offset = (spread eurusd prop + spread eurusd broker) / 200000
             const providerKey = currentSheet.toLowerCase();
@@ -1573,7 +1726,7 @@ const TradingCalculator = () => {
       : takeProfitPrezzo - (() => {
           const isEURUSD = (isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
                         || (isFundingTraders && operazione === 2)
-                        || (isThe5ers && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5));
+                        || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2);
           if (isEURUSD) {
             // EURUSD: offset = (spread eurusd prop + spread eurusd broker) / 200000
             const providerKey = currentSheet.toLowerCase();
@@ -1593,7 +1746,7 @@ const TradingCalculator = () => {
       ? stopLossPrezzo + (() => {
           const isEURUSD = (isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
                         || (isFundingTraders && operazione === 2)
-                        || (isThe5ers && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5));
+                        || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2);
           if (isEURUSD) {
             // EURUSD: offset = (spread eurusd prop + spread eurusd broker) / 200000
             const providerKey = currentSheet.toLowerCase();
@@ -1611,7 +1764,7 @@ const TradingCalculator = () => {
       : stopLossPrezzo - (() => {
           const isEURUSD = (isMasterFunders && operazione === 2 && capitaleSuProp < capitaleDefault) 
                         || (isFundingTraders && operazione === 2)
-                        || (isThe5ers && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5));
+                        || (isThe5ers && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2);
           if (isEURUSD) {
             // EURUSD: offset = (spread eurusd prop + spread eurusd broker) / 200000
             const providerKey = currentSheet.toLowerCase();
@@ -1655,20 +1808,20 @@ const TradingCalculator = () => {
       stopLossPips: Math.round(finalStopLossPips),
       stopLossPrezzo: ((currentSheet === 'MasterFunders' && operazione === 2 && capitaleSuProp < capitaleDefault) 
                     || (currentSheet === 'FundingTraders' && operazione === 2)
-                    || (currentSheet === 'The5ers' && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5))) 
+                    || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2)) 
                     ? Math.round(stopLossPrezzo * 100000) / 100000 : Math.round(stopLossPrezzo * 100) / 100,
       stopLossAxiPrezzo: ((currentSheet === 'MasterFunders' && operazione === 2 && capitaleSuProp < capitaleDefault) 
                        || (currentSheet === 'FundingTraders' && operazione === 2)
-                       || (currentSheet === 'The5ers' && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5))) 
+                       || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2)) 
                        ? Math.round(stopLossAxiPrezzo * 100000) / 100000 : Math.round(stopLossAxiPrezzo * 100) / 100,
       takeProfitPips: Math.round(finalTakeProfitPips),
       takeProfitPrezzo: ((currentSheet === 'MasterFunders' && operazione === 2 && capitaleSuProp < capitaleDefault) 
                       || (currentSheet === 'FundingTraders' && operazione === 2)
-                      || (currentSheet === 'The5ers' && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5))) 
+                      || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2)) 
                       ? Math.round(takeProfitPrezzo * 100000) / 100000 : Math.round(takeProfitPrezzo * 100) / 100,
       takeProfitAxiPrezzo: ((currentSheet === 'MasterFunders' && operazione === 2 && capitaleSuProp < capitaleDefault) 
                          || (currentSheet === 'FundingTraders' && operazione === 2)
-                         || (currentSheet === 'The5ers' && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5))) 
+                         || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2)) 
                          ? Math.round(takeProfitAxiPrezzo * 100000) / 100000 : Math.round(takeProfitAxiPrezzo * 100) / 100,
       l8_base_current: l8_base[livelloUtente - 1],
       // Dollari per OneFunded (se applicabile)
@@ -1815,8 +1968,8 @@ const TradingCalculator = () => {
     // Calcola capitali base specifici per ogni prop
     const getCapitaleBase = (propKey) => {
       if (propKey === 'the5ers') {
-        // The5ers ha capitali specifici: [5000, 10000, 20000, 60000, 100000]
-        return [5000, 10000, 20000, 60000, 100000][livelloUtente - 1];
+        // The5ers ha capitali specifici: [5000, 10000, 25000, 50000, 100000]
+        return [5000, 10000, 25000, 50000, 100000][livelloUtente - 1];
       } else if (propKey === 'fintokei') {
         // Fintokei ha capitali specifici: [5000, 10000, 20000, 50000, 100000]
         return [5000, 10000, 20000, 50000, 100000][livelloUtente - 1];
@@ -2099,7 +2252,7 @@ const TradingCalculator = () => {
 
   const handleReset = () => {
     const capitali = currentSheet === 'The5ers' 
-      ? [5000, 10000, 20000, 60000, 100000]
+      ? [5000, 10000, 25000, 50000, 100000]
       : getCapitalTiers(currentSheet);
     const capitale = capitali[livelloUtente - 1];
     setCapitaleFungina(capitale);
@@ -2752,20 +2905,6 @@ const TradingCalculator = () => {
               </div>
             )}
 
-            {/* Paragrafo speciale per The5ers livelli 4 e 5 con hasTakeProfit */}
-            {currentSheet === 'The5ers' && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5) && (
-              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 mb-6 border border-orange-200 shadow-sm">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-orange-700 mb-2">
-                    {operazione === 2 ? 'EURUSD' : 'XAUUSD'}
-                  </div>
-                  <div className="text-sm text-orange-600 font-medium">
-                    {operazione === 2 ? 'EUR/USD Trading' : 'Gold Trading'}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Main Calculator per FundedNext, OneFunded, FundingPips, FundingTraders, MasterFunders, Fintokei, The5ers e Dragon */}
             {(currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'MasterFunders' || currentSheet === 'Fintokei' || currentSheet === 'The5ers' || currentSheet === 'Audacity Capital') ? (
               <>
@@ -2777,7 +2916,7 @@ const TradingCalculator = () => {
                       setFase(Number(e.target.value));
                       // Reset completo dei valori quando cambia la fase
                       const capitali = currentSheet === 'The5ers' 
-                        ? [5000, 10000, 20000, 60000, 100000]
+                        ? [5000, 10000, 25000, 50000, 100000]
                         : currentSheet === 'Fintokei'
                         ? [5000, 10000, 20000, 50000, 100000]
                         : getCapitalTiers(currentSheet);
@@ -2844,6 +2983,25 @@ const TradingCalculator = () => {
                       >
                         <option value="No">No</option>
                         <option value="Si">Si</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Selettore coppia per The5ers (solo in operazione successiva) */}
+                {currentSheet === 'The5ers' && operazione === 2 && (
+                  <div className="bg-amber-50 rounded-lg p-4 mb-6 border border-amber-200">
+                    <div className="max-w-xs">
+                      <label className="block text-sm font-semibold text-amber-800 mb-2">
+                        Coppia di trading
+                      </label>
+                      <select 
+                        value={the5ersPair} 
+                        onChange={(e) => setThe5ersPair(e.target.value)} 
+                        className="w-full px-3 py-2 text-sm border-2 border-amber-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 bg-white font-medium"
+                      >
+                        <option value="XAUUSD">XAUUSD (Oro)</option>
+                        <option value="EURUSD">EURUSD</option>
                       </select>
                     </div>
                   </div>
@@ -2917,7 +3075,7 @@ const TradingCalculator = () => {
                     <div className="bg-white rounded-lg p-4 text-center border-l-4 border-green-400">
                       <div className="text-xs text-gray-500 mb-1">TAKE PROFIT BROKER</div>
                       <div className="text-lg font-bold text-green-600">{risultati.stopLossAxiPrezzo}</div>
-                      <div className="text-xs text-gray-500">{(risultati.takeProfitPips * risultati.l8_base_current - (risultati.lottiAxi * ((currentSheet === 'MasterFunders' && operazione === 2) || (currentSheet === 'The5ers' && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5)) ? 10 : 40))).toFixed(2)} $</div>
+                      <div className="text-xs text-gray-500">{(risultati.takeProfitPips * risultati.l8_base_current - (risultati.lottiAxi * ((currentSheet === 'MasterFunders' && operazione === 2) || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) ? 10 : 40))).toFixed(2)} $</div>
                     </div>
                     <div className="bg-white rounded-lg p-4 text-center border-l-4 border-red-500">
                       <div className="text-xs text-gray-500 mb-1">STOP LOSS PROP</div>
@@ -2927,7 +3085,7 @@ const TradingCalculator = () => {
                     <div className="bg-white rounded-lg p-4 text-center border-l-4 border-red-400">
                       <div className="text-xs text-gray-500 mb-1">STOP LOSS BROKER</div>
                       <div className="text-lg font-bold text-red-600">{risultati.takeProfitAxiPrezzo}</div>
-                      <div className="text-xs text-gray-500">-{(risultati.stopLossPips * risultati.l8_base_current + (risultati.lottiAxi * ((currentSheet === 'MasterFunders' && operazione === 2) || (currentSheet === 'The5ers' && operazione === 2 && hasTakeProfit && (livelloUtente === 4 || livelloUtente === 5)) ? 10 : 40))).toFixed(2)} $</div>
+                      <div className="text-xs text-gray-500">-{(risultati.stopLossPips * risultati.l8_base_current + (risultati.lottiAxi * ((currentSheet === 'MasterFunders' && operazione === 2) || (currentSheet === 'The5ers' && the5ersPair === 'EURUSD' && hasTakeProfit && operazione === 2) ? 10 : 40))).toFixed(2)} $</div>
                     </div>
                   </div>
                 </div>
@@ -3813,7 +3971,7 @@ const TradingCalculator = () => {
                           ? ['-', '-', '$159', '$319', '$529'][livelloUtente - 1]
                           : currentSheet === 'Audacity Capital'
                           ? ['$49', '$90', '$230', '$320', '$540'][livelloUtente - 1]
-                          : ['$39', '$78', '$165', '$329', '$545'][livelloUtente - 1]
+                          : ['$39', '$78', '$176', '$309', '$545'][livelloUtente - 1]
                         }
                       </p>
                     </div>
