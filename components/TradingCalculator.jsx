@@ -208,6 +208,9 @@ const TradingCalculator = () => {
   const [stopLossProp2Dollari, setStopLossProp2Dollari] = useState(0);
   const [takeProfitProp1Dollari, setTakeProfitProp1Dollari] = useState(0);
   const [takeProfitProp2Dollari, setTakeProfitProp2Dollari] = useState(0);
+  // ======== INIZIO DIMEZZA RISCHIO - MODIFICA 1 ========
+  const [dimezzaRischio, setDimezzaRischio] = useState(false);
+  // ======== FINE DIMEZZA RISCHIO - MODIFICA 1 ========
   const [lottiProp1Dollari, setLottiProp1Dollari] = useState(0);
   const [lottiProp2Dollari, setLottiProp2Dollari] = useState(0);
   const [stopLossPrezzoProp1, setStopLossPrezzoProp1] = useState(0);
@@ -1961,6 +1964,14 @@ const TradingCalculator = () => {
       }
     }
 
+    // ======== INIZIO DIMEZZA RISCHIO - MODIFICA 3 ========
+    // Applica dimezzamento rischio se attivo
+    if (dimezzaRischio) {
+      sl1 = sl1 / 2;
+      sl2 = sl2 / 2;
+    }
+    // ======== FINE DIMEZZA RISCHIO - MODIFICA 3 ========
+
     setStopLossProp1Dollari(Math.round(sl1));
     setStopLossProp2Dollari(Math.round(sl2));
 
@@ -1991,9 +2002,19 @@ const TradingCalculator = () => {
     const calc_lotti_2_prop2 = Math.round(calc_lotti_1_prop2 / divisore2) * divisore2;
     const lottiProp2 = calc_lotti_2_prop2 / 100;
     
+    // ======== INIZIO DIMEZZA RISCHIO - MODIFICA 4 ========
+    // Raddoppia i lotti quando il rischio è dimezzato (per mantenere i lotti costanti)
+    let finalLottiProp1 = lottiProp1;
+    let finalLottiProp2 = lottiProp2;
+    if (dimezzaRischio) {
+      finalLottiProp1 = lottiProp1 * 2;
+      finalLottiProp2 = lottiProp2 * 2;
+    }
+    // ======== FINE DIMEZZA RISCHIO - MODIFICA 4 ========
+    
     // Salva i risultati negli stati
-    setLottiProp1Dollari(Math.round(lottiProp1 * 100) / 100);
-    setLottiProp2Dollari(Math.round(lottiProp2 * 100) / 100);
+    setLottiProp1Dollari(Math.round(finalLottiProp1 * 100) / 100);
+    setLottiProp2Dollari(Math.round(finalLottiProp2 * 100) / 100);
 
     // Calcola Stop Loss e Take Profit in termini di prezzo (solo se prezzo ingresso è inserito)
     if (prezzoIngressoReal && prezzoIngressoReal !== '') {
@@ -2115,7 +2136,7 @@ const TradingCalculator = () => {
       setTakeProfitPrezzoProp2(0);
     }
 
-  }, [prop1, prop2, capitale1, capitale2, livelloUtente, currentSheet, prezzoIngressoReal, direzioneReal]);
+  }, [prop1, prop2, capitale1, capitale2, livelloUtente, currentSheet, prezzoIngressoReal, direzioneReal, dimezzaRischio]); // DIMEZZA RISCHIO: aggiunta dipendenza
 
   // Handlers
   const handleLogin = () => {
@@ -3059,6 +3080,22 @@ const TradingCalculator = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* ======== INIZIO DIMEZZA RISCHIO - MODIFICA 2 ======== */}
+                {/* Pulsante Dimezza Rischio */}
+                <div className="flex justify-center mb-6">
+                  <button
+                    onClick={() => setDimezzaRischio(!dimezzaRischio)}
+                    className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all shadow-md ${
+                      dimezzaRischio 
+                        ? 'bg-red-500 text-white hover:bg-red-600' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {dimezzaRischio ? '✓ Rischio Dimezzato' : 'Dimezza Rischio'}
+                  </button>
+                </div>
+                {/* ======== FINE DIMEZZA RISCHIO - MODIFICA 2 ======== */}
 
                 {/* Sezione Lotti */}
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-6">
