@@ -1115,29 +1115,19 @@ const TradingCalculator = () => {
     const getTakeProfit = () => {
       // Logica speciale per The5ers livelli 3 e 4 (solo con 2 Take Profit = Sì)
       if (isThe5ers && (livelloUtente === 3 || livelloUtente === 4) && hasTakeProfit) {
+        let takeProfitResult;
         if (livelloUtente === 3) {
-          // Livello 3: Take Profit Prop = $1,050 normalmente
-          // Se (cap prop - 22,500) < 1,050 → TP = cap prop - 22,510
-          const takeProfitNormale = 1050;
           const differenza = capitaleSuProp - 22500;
-          
-          if (differenza < takeProfitNormale) {
-            return capitaleSuProp - 22510;
-          } else {
-            return takeProfitNormale;
-          }
+          takeProfitResult = differenza < 1050 ? capitaleSuProp - 22510 : 1050;
         } else { // livello 4
-          // Livello 4: Take Profit Prop = $2,100 normalmente
-          // Se (cap prop - 45,000) < 2,100 → TP = cap prop - 45,020
-          const takeProfitNormale = 2100;
           const differenza = capitaleSuProp - 45000;
-          
-          if (differenza < takeProfitNormale) {
-            return capitaleSuProp - 45020;
-          } else {
-            return takeProfitNormale;
-          }
+          takeProfitResult = differenza < 2100 ? capitaleSuProp - 45020 : 2100;
         }
+        // Operazione successiva: prende lo stesso valore di operazione prima e sottrae il profitto
+        if (operazione === 2) {
+          takeProfitResult = takeProfitResult + profittoOggi;
+        }
+        return takeProfitResult;
       }
       
       
@@ -1497,7 +1487,7 @@ const TradingCalculator = () => {
     let finalLottiAxi = lottiAxi;
     let finalLottiProp = lottiProp;
     
-    if ((isThe5ers || isFintokei || isFundingPips || isFundingTraders) && !hasTakeProfit) {
+    if ((isThe5ers && (!hasTakeProfit || operazione === 2)) || ((isFintokei || isFundingPips || isFundingTraders) && !hasTakeProfit)) {
       // The5ers usa formula basata su Take Profit (solo operazione prima con hasTakeProfit=false)
       if (isThe5ers) {
         // Nuova logica per The5ers: Lotti Broker basati su Take Profit Prop
