@@ -1954,6 +1954,10 @@ const TradingCalculator = () => {
       }
     }
 
+    // Regola speciale: per Angelo (username '3') con Fintokei in Fase Real, SL fisso = $180
+    if (username === '3' && prop1 === 'fintokei') sl1 = 180;
+    if (username === '3' && prop2 === 'fintokei') sl2 = 180;
+
     // ======== INIZIO DIMEZZA RISCHIO - MODIFICA 3 ========
     // Applica dimezzamento rischio se attivo
     if (dimezzaRischio) {
