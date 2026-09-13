@@ -9,6 +9,7 @@ const DEFAULT_CREDENTIALS = {
   'Nick': '2500',
   'Rini': '2500',
   'Angelo': '2500',
+  'Giorgio': '2500',
   '3': '2500',
   '1': '1'
 };
@@ -21,6 +22,7 @@ const USER_LEVEL_PERMISSIONS = {
   'Nick': [3, 4],
   'Rini': [3],
   'Angelo': [3],
+  'Giorgio': [3],
   '3': [3, 4],
   '1': [1, 2, 3, 4, 5]
 };
@@ -409,7 +411,7 @@ const TradingCalculator = () => {
         return (livello >= 4) ? prezzo / 10 : prezzo / 15;
       },
       l8_base: {
-        fase1: [0.18, 0.18, 0.18, 0.2, 0.21],
+        fase1: [0.18, 0.18, 0.19, 0.2, 0.21],
         fase2: [0.3, 0.3, 0.3, 0.3, 0.3]
       },
       soglie: [250, 500, 1000, 3000, 5000],
@@ -3727,13 +3729,21 @@ const TradingCalculator = () => {
                        currentSheet === 'Audacity Capital' ? 'Ability challenge' : 'High Stakes'}
                     </p>
                   </div>
+
+                  {/* Riquadro Tipo Conto - solo per The5ers */}
+                  {currentSheet === 'The5ers' && (
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <h4 className="font-semibold text-blue-800 mb-1 text-sm">Tipo conto</h4>
+                      <p className="text-blue-700 font-medium text-sm">Classic</p>
+                    </div>
+                  )}
                   
                   {(currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'MasterFunders' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'Audacity Capital') && (
                     <div className="bg-blue-50 rounded-lg p-3">
                       <h4 className="font-semibold text-blue-800 mb-1 text-sm">Dimensione challenge</h4>
                       <p className="text-blue-700 font-medium text-sm">
                         ${currentSheet === 'The5ers' 
-                          ? [5000, 10000, 20000, 60000, 100000][livelloUtente - 1].toLocaleString()
+                          ? [5000, 10000, 25000, 60000, 100000][livelloUtente - 1].toLocaleString()
                           : currentSheet === 'Fintokei'
                           ? [5000, 10000, 20000, 50000, 100000][livelloUtente - 1].toLocaleString()
                           : getCapitalTiers(currentSheet)[livelloUtente - 1].toLocaleString()
@@ -3858,7 +3868,7 @@ const TradingCalculator = () => {
                       <h4 className="font-semibold text-blue-800 mb-1 text-sm">Prezzo</h4>
                       <p className="text-blue-700 font-bold text-lg">
                         {currentSheet === 'FundedNext' 
-                          ? ['$38', '$71', '$167', '$275', '$479'][livelloUtente - 1]
+                          ? ['$39.59', '$71.99', '$167.99', '$275.99', '$479.99'][livelloUtente - 1]
                           : currentSheet === 'OneFunded'
                           ? ['$49', '$96', '$135', '$211', '$390'][livelloUtente - 1]
                           : currentSheet === 'MasterFunders'
@@ -3869,6 +3879,8 @@ const TradingCalculator = () => {
                           ? ['-', '-', '$159', '$319', '$529'][livelloUtente - 1]
                           : currentSheet === 'Audacity Capital'
                           ? ['$49', '$90', '$230', '$320', '$540'][livelloUtente - 1]
+                          : currentSheet === 'The5ers'
+                          ? ['$39', '$78', '$195', '$309', '$545'][livelloUtente - 1]
                           : ['$39', '$78', '$176', '$309', '$545'][livelloUtente - 1]
                         }
                       </p>
