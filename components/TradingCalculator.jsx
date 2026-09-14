@@ -324,7 +324,7 @@ const TradingCalculator = () => {
       factor: 0.75,
       k8Calc: (prezzo) => prezzo / 30,
       l8_base: {
-        fase1: [0.18, 0.19, 0.2, 0.2, 0.21],
+        fase1: [0.18, 0.19, 0.19, 0.2, 0.21],
         fase2: [0.31, 0.3, 0.3, 0.31, 0.3]
       },
       soglie: [250, 500, 1250, 2500, 5000],
@@ -3874,7 +3874,7 @@ const TradingCalculator = () => {
                           : currentSheet === 'MasterFunders'
                           ? ['$40', '$75', '$170', '$319', '$549'][livelloUtente - 1]
                           : currentSheet === 'FundingPips'
-                          ? ['$36', '$66', '$156', '$289', '$529'][livelloUtente - 1]
+                          ? ['$36', '$66', '$177', '$299', '$529'][livelloUtente - 1]
                           : currentSheet === 'Fintokei'
                           ? ['-', '-', '$159', '$319', '$529'][livelloUtente - 1]
                           : currentSheet === 'Audacity Capital'
