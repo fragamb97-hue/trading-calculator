@@ -40,7 +40,7 @@ const PROP_WEIGHTS = {
 
 const CAPITAL_TIERS = {
   'default': [5000, 10000, 25000, 50000, 100000],
-  'dragon': [5000, 10000, 30000, 60000, 120000]
+  'dragon': [5000, 10000, 25000, 60000, 120000]
 };
 
 // Helper function to get capital tiers based on sheet/provider
@@ -59,8 +59,8 @@ const SOGLIA_MIN = {
   'fundingpips': [4502, 9004, 22508, 45020, 90040],
   'fintokei': [4502, 9004, 18006, 45020, 90040],
   'dragon': {
-    fase1: [4252, 8504, 25510, 51020, 102040],
-    fase2: [4502, 9004, 27010, 54020, 108040]
+    fase1: [4252, 8504, 21260, 51020, 102040],
+    fase2: [4502, 9004, 22510, 54020, 108040]
   }
 };
 
@@ -468,15 +468,15 @@ const TradingCalculator = () => {
     // - Challenge Phases: 2 (rimossa fase 3)
     // - Nome Challenge: Audacity Capital
     // - Piattaforma: Platform 5
-    // - Dimensione Challenge: $5,000 (Liv1), $10,000 (Liv2), $30,000 (Liv3), $60,000 (Liv4), $120,000 (Liv5)
-    // - Prezzo: $49 (Liv1), $55 (Liv2), $89 (Liv3), $159 (Liv4), $299 (Liv5)
+    // - Dimensione Challenge: $5,000 (Liv1), $10,000 (Liv2), $25,000 (Liv3), $60,000 (Liv4), $120,000 (Liv5)
+    // - Prezzo: $49 (Liv1), $90 (Liv2), $168 (Liv3), $320 (Liv4), $540 (Liv5)
     'Audacity Capital': {
       key: 'dragon',
-      factor: 0.75,
+      factor: 0.45,
       k8Calc: (prezzo) => prezzo / 30,
       l8_base: {
-        fase1: [0.13, 0.13, 0.12, 0.13, 0.14], // Livelli 1,2,3,4,5
-        fase2: [0.3, 0.31, 0.25, 0.26, 0.25]   // Livelli 1,2,3,4,5
+        fase1: [0.13, 0.13, 0.16, 0.17, 0.18], // Livelli 1,2,3,4,5
+        fase2: [0.3, 0.31, 0.3, 0.3, 0.3]   // Livelli 1,2,3,4,5
       },
       soglie: [250, 500, 1250, 2500, 5000],
       soglie2: [420, 840, 2100, 4200, 8400],
@@ -485,13 +485,13 @@ const TradingCalculator = () => {
         fase2: { adj1: [0.02, 0.05, 0.13, 0.28, 0.55], adj2: [0.01, 0.03, 0.06, 0.13, 0.28] }
       },
       targets: {
-        fase1: [4250, 8500, 25500, 51000, 102000],
-        fase2: [4500, 9000, 27000, 54000, 108000]
+        fase1: [4250, 8500, 21250, 51000, 102000],
+        fase2: [4500, 9000, 22500, 54000, 108000]
       },
       soglie180: [250, 500, 1250, 2500, 5000],
       thresholds: {
-        fase1: [4252, 8504, 25510, 51020, 102040],
-        fase2: [4502, 9004, 27010, 54020, 108040]
+        fase1: [4252, 8504, 21260, 51020, 102040],
+        fase2: [4502, 9004, 22510, 54020, 108040]
       }
     }
   };
@@ -538,10 +538,10 @@ const TradingCalculator = () => {
             // (baseValue - capitaleSuProp) / 2.5
             // Livello 1: (5500 - cap) / 2.5
             // Livello 2: (11000 - cap) / 2.5
-            // Livello 3: (33000 - cap) / 2.5
+            // Livello 3: (27500 - cap) / 2.5
             // Livello 4: (66000 - cap) / 2.5
             // Livello 5: (132000 - cap) / 2.5
-            const baseValues = [5500, 11000, 33000, 66000, 132000];
+            const baseValues = [5500, 11000, 27500, 66000, 132000];
             const baseValue = baseValues[livelloUtente - 1];
             return (baseValue - capitaleSuProp) / 2.5;
           } else {
@@ -549,10 +549,10 @@ const TradingCalculator = () => {
             // baseValue - capitaleSuProp
             // Livello 1: 5504 - cap
             // Livello 2: 11008 - cap
-            // Livello 3: 33024 - cap
+            // Livello 3: 27520 - cap
             // Livello 4: 66048 - cap
             // Livello 5: 132096 - cap
-            const baseValuesSuccessiva = [5504, 11008, 33024, 66048, 132096];
+            const baseValuesSuccessiva = [5504, 11008, 27520, 66048, 132096];
             const baseValue = baseValuesSuccessiva[livelloUtente - 1];
             return profittoOggi === 0 ? 0 : baseValue - capitaleSuProp;
           }
@@ -562,10 +562,10 @@ const TradingCalculator = () => {
             // (baseValue - capitaleSuProp) / 2
             // Livello 1: (5250 - cap) / 2
             // Livello 2: (10500 - cap) / 2
-            // Livello 3: (31500 - cap) / 2
+            // Livello 3: (26250 - cap) / 2
             // Livello 4: (63000 - cap) / 2
             // Livello 5: (126000 - cap) / 2
-            const baseValuesFase2 = [5250, 10500, 31500, 63000, 126000];
+            const baseValuesFase2 = [5250, 10500, 26250, 63000, 126000];
             const baseValue = baseValuesFase2[livelloUtente - 1];
             return (baseValue - capitaleSuProp) / 2;
           } else {
@@ -573,10 +573,10 @@ const TradingCalculator = () => {
             // baseValue - capitaleSuProp
             // Livello 1: 5254 - cap
             // Livello 2: 10508 - cap
-            // Livello 3: 31524 - cap
+            // Livello 3: 26270 - cap
             // Livello 4: 63048 - cap
             // Livello 5: 126096 - cap
-            const baseValuesSuccessivaFase2 = [5254, 10508, 31524, 63048, 126096];
+            const baseValuesSuccessivaFase2 = [5254, 10508, 26270, 63048, 126096];
             const baseValue = baseValuesSuccessivaFase2[livelloUtente - 1];
             return profittoOggi === 0 ? 0 : baseValue - capitaleSuProp;
           }
@@ -589,16 +589,15 @@ const TradingCalculator = () => {
       const getTakeProfit = () => {
         // LOGICA SPECIALE PER AUDACITY CAPITAL FASE 1
         if (fase === 1) {
-          // Take profit proporzionale per livello: [360, 720, 1800, 3600, 7200]
-          const moltiplicatori = [1, 2, 5, 10, 20];
-          const moltiplicatore = moltiplicatori[livelloUtente - 1];
-          const takeProfitBase = 360 * moltiplicatore;
+          // Take profit proporzionale per livello: [360, 720, 1700, 3500, 7000]
+          const takeProfitBaseValues = [360, 720, 1700, 3500, 7000];
+          const takeProfitBase = takeProfitBaseValues[livelloUtente - 1];
           
-          // Soglie minime per livello: [4250, 8500, 25500, 51000, 102000]
+          // Soglie minime per livello: [4250, 8500, 21250, 51000, 102000]
           const currentTargets = config.targets.fase1;
           const sogliaMinima = currentTargets[livelloUtente - 1];
           
-          // Thresholds per livello: [4252, 8504, 25510, 51020, 102040]
+          // Thresholds per livello: [4252, 8504, 21260, 51020, 102040]
           const currentThresholds = config.thresholds.fase1;
           const threshold = currentThresholds[livelloUtente - 1];
           
@@ -640,7 +639,7 @@ const TradingCalculator = () => {
           getValore130: (isSogliaExceeded, operazione, capitaleSuProp, livelloUtente) => {
             // Valori per Audacity Capital (simili a FundingPips)
             const audacityMultipliers = isSogliaExceeded ? 
-              [236, 472, 1180, 2360, 4720] : 
+              [236, 472, 1100, 2300, 4600] : 
               [245, 490, 1225, 2450, 4900];
             return audacityMultipliers[livelloUtente - 1];
           }
@@ -681,6 +680,45 @@ const TradingCalculator = () => {
       let finalStopLossPips = stopLossPips;
       let finalTakeProfitPips = takeProfitPips;
       
+      // Se "Primo giorno completato?" = No, usa formula fissa basata su soglie (come FundingPips)
+      if (!hasTakeProfit) {
+        const soglieAudacity = {
+          1: { alto: 4950, medio: 4900, base: 5000, stopAlto: 30, stopMedio: 50, minCapitale: 4502, sogliaSpeciale: 4725 },
+          2: { alto: 9900, medio: 9800, base: 10000, stopAlto: 60, stopMedio: 100, minCapitale: 9004, sogliaSpeciale: 9450 },
+          3: { alto: 24750, medio: 24500, base: 25000, stopAlto: 150, stopMedio: 250, minCapitale: 22510, sogliaSpeciale: 23625 },
+          4: { alto: 59400, medio: 58800, base: 60000, stopAlto: 360, stopMedio: 600, minCapitale: 54020, sogliaSpeciale: 56700 },
+          5: { alto: 118800, medio: 117600, base: 120000, stopAlto: 720, stopMedio: 1200, minCapitale: 108040, sogliaSpeciale: 113400 }
+        };
+        const sogliaLivello = soglieAudacity[livelloUtente];
+        
+        if (capitaleSuProp < sogliaLivello.sogliaSpeciale) {
+          finalStopLossPips = capitaleSuProp - sogliaLivello.minCapitale;
+          finalTakeProfitPips = finalStopLossPips * 1.2;
+        } else {
+          if (capitaleSuProp > sogliaLivello.alto) {
+            finalStopLossPips = sogliaLivello.stopAlto;
+            finalTakeProfitPips = finalStopLossPips * (40/30);
+          } else if (capitaleSuProp > sogliaLivello.medio && capitaleSuProp <= sogliaLivello.alto) {
+            finalStopLossPips = sogliaLivello.stopMedio;
+            finalTakeProfitPips = finalStopLossPips * 1.2;
+          } else {
+            finalStopLossPips = (sogliaLivello.base - capitaleSuProp) / 2;
+            finalTakeProfitPips = finalStopLossPips * 1.2;
+          }
+        }
+        
+        // Protezione minCapitale: il capitale meno il take profit non deve scendere sotto minCapitale
+        const capitaleDopoTakeProfit = capitaleSuProp - finalTakeProfitPips;
+        if (capitaleDopoTakeProfit < sogliaLivello.minCapitale) {
+          finalTakeProfitPips = capitaleSuProp - sogliaLivello.minCapitale;
+          if (capitaleSuProp > sogliaLivello.alto) {
+            finalStopLossPips = finalTakeProfitPips * (30/40);
+          } else {
+            finalStopLossPips = finalTakeProfitPips / 1.2;
+          }
+        }
+      }
+      
       // Limite MINIMO Take Profit per MasterFunders: non può essere più negativo di -80$ × moltiplicatore (PRIORITARIO, si applica DOPO tutte le altre modifiche)
       // NOTA: a causa di uno swap nell'interfaccia, finalStopLossPips è quello mostrato come "TAKE PROFIT PROP"
       if (config.key === 'masterfunders') {
@@ -702,8 +740,53 @@ const TradingCalculator = () => {
       
       // Calcolo lotti - CALCOLO CLASSICO per Audacity Capital
       // Usa m8 che è già stato calcolato con k8
-      const lottiAxi = m8;
-      const lottiProp = m8 / l8_base_current;
+      let lottiAxi = m8;
+      let lottiProp = m8 / l8_base_current;
+      
+      // Se "Primo giorno completato?" = No, usa soglie fisse per i lotti (come FundingPips)
+      if (!hasTakeProfit) {
+        const soglieLottiAudacity = fase === 1 ? {
+          1: { soglia1: 70, soglia2: 140, soglia3: 200, lotto1: 0.01, lotto2: 0.02, lotto3: 0.03, lotto4: 0.04 },
+          2: { soglia0: 70, soglia1: 140, soglia2: 280, soglia3: 400, lotto0: 0.01, lotto1: 0.02, lotto2: 0.04, lotto3: 0.06, lotto4: 0.08 },
+          3: { soglia0: 140, soglia1: 280, soglia2: 560, soglia3: 800, lotto0: 0.02, lotto1: 0.04, lotto2: 0.08, lotto3: 0.12, lotto4: 0.16 },
+          4: { soglia0: 504, soglia1: 1008, soglia2: 2016, soglia3: 2880, lotto0: 0.06, lotto1: 0.12, lotto2: 0.24, lotto3: 0.36, lotto4: 0.48 },
+          5: { soglia0: 840, soglia1: 1680, soglia2: 3360, soglia3: 4800, lotto0: 0.10, lotto1: 0.20, lotto2: 0.40, lotto3: 0.60, lotto4: 0.80 }
+        } : {
+          1: { soglia1: 70, soglia2: 140, soglia3: 200, lotto1: 0.02, lotto2: 0.03, lotto3: 0.04, lotto4: 0.06 },
+          2: { soglia0: 70, soglia1: 140, soglia2: 280, soglia3: 400, lotto0: 0.02, lotto1: 0.04, lotto2: 0.06, lotto3: 0.08, lotto4: 0.12 },
+          3: { soglia0: 140, soglia1: 280, soglia2: 560, soglia3: 800, lotto0: 0.04, lotto1: 0.08, lotto2: 0.12, lotto3: 0.16, lotto4: 0.24 },
+          4: { soglia0: 504, soglia1: 1008, soglia2: 2016, soglia3: 2880, lotto0: 0.12, lotto1: 0.24, lotto2: 0.36, lotto3: 0.48, lotto4: 0.72 },
+          5: { soglia0: 840, soglia1: 1680, soglia2: 3360, soglia3: 4800, lotto0: 0.20, lotto1: 0.40, lotto2: 0.60, lotto3: 0.80, lotto4: 1.20 }
+        };
+        
+        const livelloLotti = soglieLottiAudacity[livelloUtente];
+        
+        if (livelloUtente === 1) {
+          if (finalStopLossPips < livelloLotti.soglia1) {
+            lottiAxi = livelloLotti.lotto1;
+          } else if (finalStopLossPips >= livelloLotti.soglia1 && finalStopLossPips < livelloLotti.soglia2) {
+            lottiAxi = livelloLotti.lotto2;
+          } else if (finalStopLossPips >= livelloLotti.soglia2 && finalStopLossPips < livelloLotti.soglia3) {
+            lottiAxi = livelloLotti.lotto3;
+          } else if (finalStopLossPips >= livelloLotti.soglia3) {
+            lottiAxi = livelloLotti.lotto4;
+          }
+        } else {
+          if (finalStopLossPips < livelloLotti.soglia0) {
+            lottiAxi = livelloLotti.lotto0;
+          } else if (finalStopLossPips >= livelloLotti.soglia0 && finalStopLossPips < livelloLotti.soglia1) {
+            lottiAxi = livelloLotti.lotto1;
+          } else if (finalStopLossPips >= livelloLotti.soglia1 && finalStopLossPips < livelloLotti.soglia2) {
+            lottiAxi = livelloLotti.lotto2;
+          } else if (finalStopLossPips >= livelloLotti.soglia2 && finalStopLossPips < livelloLotti.soglia3) {
+            lottiAxi = livelloLotti.lotto3;
+          } else if (finalStopLossPips >= livelloLotti.soglia3) {
+            lottiAxi = livelloLotti.lotto4;
+          }
+        }
+        
+        lottiProp = lottiAxi / l8_base_current;
+      }
       
       // Calcolo stop loss prezzo usando final pips E lotti prop
       const moltiplicatore = 100; // XAUUSD
@@ -2277,7 +2360,7 @@ const TradingCalculator = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-3 sm:mb-4">
-              {['FundedNext', 'OneFunded', 'MasterFunders', 'FundingPips', 'The5ers', 'Fintokei', 'Audacity Capital', 'FundingTraders']
+              {['FundedNext', /* 'OneFunded', 'MasterFunders', */ 'FundingPips', 'The5ers', 'Fintokei', 'Audacity Capital', 'FundingTraders']
                 .filter(sheet => sheet !== 'Fintokei' || livelloUtente >= 3) // Nascondi Fintokei se livello < 3
                 .filter(sheet => sheet !== 'FundingTraders' || livelloUtente >= 3) // Nascondi FundingTraders se livello < 3
                 .map((sheet) => {
@@ -2364,7 +2447,7 @@ const TradingCalculator = () => {
                     className="px-2 py-1 sm:px-3 sm:py-1.5 border-0 rounded-lg bg-white/20 backdrop-blur-sm text-white text-xs sm:text-sm font-medium focus:ring-2 focus:ring-white/50 focus:outline-none"
                   >
                     <option value="fundednext" className="text-gray-900">Funded Next</option>
-                    <option value="onefunded" className="text-gray-900">One Funded</option>
+                    {/* <option value="onefunded" className="text-gray-900">One Funded</option> */}
                     <option value="fundingpips" className="text-gray-900">Funding Pips</option>
                     <option value="the5ers" className="text-gray-900">The5ers</option>
                     <option value="fintokei" className="text-gray-900">Fintokei</option>
@@ -2551,7 +2634,7 @@ const TradingCalculator = () => {
                   className="px-2 py-1 sm:px-3 sm:py-1.5 border-0 rounded-lg bg-white/20 backdrop-blur-sm text-white text-xs sm:text-sm font-medium focus:ring-2 focus:ring-white/50 focus:outline-none"
                 >
                   <option value="fundednext" className="text-gray-900">Funded Next</option>
-                  <option value="onefunded" className="text-gray-900">One Funded</option>
+                  {/* <option value="onefunded" className="text-gray-900">One Funded</option> */}
                   <option value="fundingpips" className="text-gray-900">Funding Pips</option>
                   <option value="the5ers" className="text-gray-900">The5ers</option>
                   <option value="fintokei" className="text-gray-900">Fintokei</option>
@@ -2864,12 +2947,13 @@ const TradingCalculator = () => {
                   )}
                 </div>
 
-                {/* Parametro aggiuntivo per The5ers, Fintokei, FundingPips e FundingTraders */}
-                {(currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders') && (
+                {/* Parametro aggiuntivo per The5ers, Fintokei, FundingPips, FundingTraders e Audacity Capital */}
+                {(currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'Audacity Capital') && (
                   <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
                     <div className="max-w-xs">
                       <label className="block text-sm font-semibold text-blue-800 mb-2">
-                        {(currentSheet === 'FundingPips' || currentSheet === 'Fintokei' || currentSheet === 'FundingTraders') ? 'Primo giorno completato?' : 'Hai già preso 2 take profit?'}
+                        {currentSheet === 'Audacity Capital' ? 'Primi 2 giorni completati?' :
+                         (currentSheet === 'FundingPips' || currentSheet === 'Fintokei' || currentSheet === 'FundingTraders') ? 'Primo giorno completato?' : 'Hai già preso 2 take profit?'}
                       </label>
                       <select 
                         value={hasTakeProfit ? 'Si' : 'No'} 
@@ -3001,10 +3085,10 @@ const TradingCalculator = () => {
                         className="w-full px-3 sm:px-4 py-2 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white font-medium text-sm sm:text-base"
                       >
                         <option value="">Seleziona...</option>
-                        <option value="masterfunders" disabled={prop2 === 'masterfunders'}>Master Funders</option>
+                        {/* <option value="masterfunders" disabled={prop2 === 'masterfunders'}>Master Funders</option> */}
                         {livelloUtente >= 3 && <option value="fintokei" disabled={prop2 === 'fintokei'}>Fintokei</option>}
                         <option value="fundednext" disabled={prop2 === 'fundednext'}>Funded Next</option>
-                        <option value="onefunded" disabled={prop2 === 'onefunded'}>One Funded</option>
+                        {/* <option value="onefunded" disabled={prop2 === 'onefunded'}>One Funded</option> */}
                         <option value="fundingpips" disabled={prop2 === 'fundingpips'}>Funding Pips</option>
                         {livelloUtente >= 3 && <option value="fundingtraders" disabled={prop2 === 'fundingtraders'}>Funding Traders</option>}
                         <option value="the5ers" disabled={prop2 === 'the5ers'}>The5ers</option>
@@ -3028,10 +3112,10 @@ const TradingCalculator = () => {
                         className="w-full px-3 sm:px-4 py-2 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white font-medium text-sm sm:text-base"
                       >
                         <option value="">Seleziona...</option>
-                        <option value="masterfunders" disabled={prop1 === 'masterfunders'}>Master Funders</option>
+                        {/* <option value="masterfunders" disabled={prop1 === 'masterfunders'}>Master Funders</option> */}
                         {livelloUtente >= 3 && <option value="fintokei" disabled={prop1 === 'fintokei'}>Fintokei</option>}
                         <option value="fundednext" disabled={prop1 === 'fundednext'}>Funded Next</option>
-                        <option value="onefunded" disabled={prop1 === 'onefunded'}>One Funded</option>
+                        {/* <option value="onefunded" disabled={prop1 === 'onefunded'}>One Funded</option> */}
                         <option value="fundingpips" disabled={prop1 === 'fundingpips'}>Funding Pips</option>
                         {livelloUtente >= 3 && <option value="fundingtraders" disabled={prop1 === 'fundingtraders'}>Funding Traders</option>}
                         <option value="the5ers" disabled={prop1 === 'the5ers'}>The5ers</option>
@@ -3316,7 +3400,7 @@ const TradingCalculator = () => {
                       placeholder="Capitale prop..."
                     />
                   </div>
-                ) : (currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders') && !hasTakeProfit ? (
+                ) : (currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'Audacity Capital') && !hasTakeProfit ? (
                   <div className="text-center">
                     <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">🎉</div>
                     <p className="text-base sm:text-lg font-semibold mb-2">Ben fatto!</p>
@@ -3878,7 +3962,7 @@ const TradingCalculator = () => {
                           : currentSheet === 'Fintokei'
                           ? ['-', '-', '$159', '$319', '$529'][livelloUtente - 1]
                           : currentSheet === 'Audacity Capital'
-                          ? ['$49', '$90', '$230', '$320', '$540'][livelloUtente - 1]
+                          ? ['$49', '$90', '$168', '$320', '$540'][livelloUtente - 1]
                           : currentSheet === 'The5ers'
                           ? ['$39', '$78', '$195', '$309', '$545'][livelloUtente - 1]
                           : ['$39', '$78', '$176', '$309', '$545'][livelloUtente - 1]
