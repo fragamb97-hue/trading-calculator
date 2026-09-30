@@ -83,6 +83,7 @@ const SHEET_CONSTANTS = {
   'masterfunders': 0.96,
   'the5ers': 0.96,
   'fintokei': 0.96,
+  'alpha capital': 0.96,
   'dragon': 1.0
 };
 
@@ -320,6 +321,25 @@ const TradingCalculator = () => {
   // Configurazione centralizzata dei provider
   const PROVIDER_CONFIG = {
     FundingPips: {
+      key: 'fundingpips',
+      factor: 0.75,
+      k8Calc: (prezzo) => prezzo / 30,
+      l8_base: {
+        fase1: [0.18, 0.19, 0.19, 0.2, 0.21],
+        fase2: [0.31, 0.3, 0.3, 0.31, 0.3]
+      },
+      soglie: [250, 500, 1250, 2500, 5000],
+      soglie2: [420, 840, 2100, 4200, 8400],
+      adjustments: {
+        fase1: { adj1: [0.02, 0.05, 0.14, 0.3, 0.58], adj2: [0.01, 0.03, 0.07, 0.15, 0.32] },
+        fase2: { adj1: [0.04, 0.07, 0.23, 0.42, 0.88], adj2: [0.02, 0.04, 0.1, 0.22, 0.45] }
+      },
+      targets: [4500, 9000, 22500, 45000, 90000],
+      soglie180: [250, 500, 1250, 2500, 5000],
+      thresholds: [4502, 9004, 22510, 45020, 90040]
+    },
+    'Alpha Capital': {
+      // Per ora identico a FundingPips - stessa configurazione completa
       key: 'fundingpips',
       factor: 0.75,
       k8Calc: (prezzo) => prezzo / 30,
@@ -850,7 +870,7 @@ const TradingCalculator = () => {
     }
     
     const config = PROVIDER_CONFIG[currentSheet] || PROVIDER_CONFIG.FundedNext;
-    const isFundingPips = currentSheet === 'FundingPips';
+    const isFundingPips = currentSheet === 'FundingPips' || currentSheet === 'Alpha Capital';
     const isFundingTraders = currentSheet === 'FundingTraders';
     const isMasterFunders = currentSheet === 'MasterFunders';
     const isFintokei = currentSheet === 'Fintokei';
@@ -924,6 +944,7 @@ const TradingCalculator = () => {
       const getBaseValues = () => {
         const standardValues = {
           fundingpips: { fase1: 5405, fase2: 5255, thresholdFase2: 4800 },
+          alphacapital: { fase1: 5505, fase2: 5255, thresholdFase2: 4800 },
           fundingtraders: { fase1: 5505, fase2: 5255, thresholdFase2: 4800 },
           fintokei: { fase1: 5405, fase2: 5305, thresholdFase2: 4800 },
           the5ers: { fase1: 5402, fase2: 5252, thresholdFase2: 4000 }, // Valori specifici per The5ers
@@ -1164,7 +1185,8 @@ const TradingCalculator = () => {
       }
       
       // Logica unificata per gli altri provider
-      const providerKey = isFundingPips ? 'fundingpips' :
+      const providerKey = currentSheet === 'Alpha Capital' ? 'alphacapital' :
+                         isFundingPips ? 'fundingpips' :
                          isFundingTraders ? 'fundingtraders' :
                          isMasterFunders ? 'masterfunders' :
                          isFintokei ? 'fintokei' : 'fundednext';
@@ -2360,7 +2382,7 @@ const TradingCalculator = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-3 sm:mb-4">
-              {['FundedNext', /* 'OneFunded', 'MasterFunders', */ 'FundingPips', 'The5ers', 'Fintokei', 'Audacity Capital', 'FundingTraders']
+              {['FundedNext', /* 'OneFunded', 'MasterFunders', */ 'FundingPips', 'The5ers', 'Fintokei', 'Audacity Capital', 'FundingTraders', 'Alpha Capital']
                 .filter(sheet => sheet !== 'Fintokei' || livelloUtente >= 3) // Nascondi Fintokei se livello < 3
                 .filter(sheet => sheet !== 'FundingTraders' || livelloUtente >= 3) // Nascondi FundingTraders se livello < 3
                 .map((sheet) => {
@@ -2845,12 +2867,12 @@ const TradingCalculator = () => {
                 {currentSheet !== 'Fase Real' && (
                   <button 
                     onClick={() => {
-                      if (currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'MasterFunders' || currentSheet === 'FundingTraders' || currentSheet === 'FundingPips' || currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'Audacity Capital') {
+                      if (currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'MasterFunders' || currentSheet === 'FundingTraders' || currentSheet === 'FundingPips' || currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'Audacity Capital' || currentSheet === 'Alpha Capital') {
                         setShowInfoPopup(true);
                       }
                     }}
                     className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-all duration-200 text-xs sm:text-base ${
-                      (currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'MasterFunders' || currentSheet === 'FundingTraders' || currentSheet === 'FundingPips' || currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'Audacity Capital')
+                      (currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'MasterFunders' || currentSheet === 'FundingTraders' || currentSheet === 'FundingPips' || currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'Audacity Capital' || currentSheet === 'Alpha Capital')
                         ? 'bg-white bg-opacity-20 hover:bg-opacity-30 text-white cursor-pointer' 
                         : 'bg-gray-400 bg-opacity-50 text-gray-200 cursor-not-allowed'
                     }`}
@@ -2892,7 +2914,7 @@ const TradingCalculator = () => {
             )}
 
             {/* Main Calculator per FundedNext, OneFunded, FundingPips, FundingTraders, MasterFunders, Fintokei, The5ers e Dragon */}
-            {(currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'MasterFunders' || currentSheet === 'Fintokei' || currentSheet === 'The5ers' || currentSheet === 'Audacity Capital') ? (
+            {(currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'MasterFunders' || currentSheet === 'Fintokei' || currentSheet === 'The5ers' || currentSheet === 'Audacity Capital' || currentSheet === 'Alpha Capital') ? (
               <>
                 {/* Controlli */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -2948,12 +2970,12 @@ const TradingCalculator = () => {
                 </div>
 
                 {/* Parametro aggiuntivo per The5ers, Fintokei, FundingPips, FundingTraders e Audacity Capital */}
-                {(currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'Audacity Capital') && (
+                {(currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'Audacity Capital' || currentSheet === 'Alpha Capital') && (
                   <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
                     <div className="max-w-xs">
                       <label className="block text-sm font-semibold text-blue-800 mb-2">
                         {currentSheet === 'Audacity Capital' ? 'Primi 2 giorni completati?' :
-                         (currentSheet === 'FundingPips' || currentSheet === 'Fintokei' || currentSheet === 'FundingTraders') ? 'Primo giorno completato?' : 'Hai già preso 2 take profit?'}
+                         (currentSheet === 'FundingPips' || currentSheet === 'Fintokei' || currentSheet === 'FundingTraders' || currentSheet === 'Alpha Capital') ? 'Primo giorno completato?' : 'Hai già preso 2 take profit?'}
                       </label>
                       <select 
                         value={hasTakeProfit ? 'Si' : 'No'} 
@@ -3400,13 +3422,13 @@ const TradingCalculator = () => {
                       placeholder="Capitale prop..."
                     />
                   </div>
-                ) : (currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'Audacity Capital') && !hasTakeProfit ? (
+                ) : (currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'Audacity Capital' || currentSheet === 'Alpha Capital') && !hasTakeProfit ? (
                   <div className="text-center">
                     <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">🎉</div>
                     <p className="text-base sm:text-lg font-semibold mb-2">Ben fatto!</p>
                     <p className="text-sm sm:text-base text-gray-600">Ci vediamo domani.</p>
                   </div>
-                ) : (currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders') && hasTakeProfit ? (
+                ) : (currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'Alpha Capital') && hasTakeProfit ? (
                   /* Per Fintokei, FundingPips e FundingTraders con "Primo giorno completato?" = Si, mostra direttamente i campi input */
                   <div className="space-y-3 sm:space-y-4">
                     <input
@@ -3470,7 +3492,7 @@ const TradingCalculator = () => {
                           </div>
                         )}
                       </>
-                    ) : (currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'MasterFunders' || currentSheet === 'FundingPips' || currentSheet === 'Audacity Capital') ? (
+                    ) : (currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'MasterFunders' || currentSheet === 'FundingPips' || currentSheet === 'Audacity Capital' || currentSheet === 'Alpha Capital') ? (
                       // Per FundedNext, OneFunded, MasterFunders, FundingPips e Dragon: Stop loss mostra sempre congratulazioni
                       <div className="text-center">
                         <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">🎉</div>
@@ -3515,7 +3537,7 @@ const TradingCalculator = () => {
 
                 {risultatoSelezionato === 'Take profit' && (
                   <>
-                    {operazione === 2 || ((currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders') && !hasTakeProfit) ? (
+                    {operazione === 2 || ((currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'Alpha Capital') && !hasTakeProfit) ? (
                       <div className="text-center">
                         <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">🎉</div>
                         <p className="text-base sm:text-lg font-semibold mb-2">Ben fatto!</p>
@@ -3543,17 +3565,17 @@ const TradingCalculator = () => {
                 )}
 
                 <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
-                  {(risultatoSelezionato !== '' || currentSheet === 'OneFunded' || (currentSheet === 'Fintokei' && hasTakeProfit) || (currentSheet === 'FundingTraders' && hasTakeProfit) || (currentSheet === 'FundingPips' && hasTakeProfit)) && (
+                  {(risultatoSelezionato !== '' || currentSheet === 'OneFunded' || (currentSheet === 'Fintokei' && hasTakeProfit) || (currentSheet === 'FundingTraders' && hasTakeProfit) || (currentSheet === 'FundingPips' && hasTakeProfit) || (currentSheet === 'Alpha Capital' && hasTakeProfit)) && (
                     <button onClick={() => {
-                      if (currentSheet === 'OneFunded' || (currentSheet === 'Fintokei' && hasTakeProfit) || (currentSheet === 'FundingTraders' && hasTakeProfit) || (currentSheet === 'FundingPips' && hasTakeProfit)) {
-                        // Per OneFunded, Fintokei, FundingTraders e FundingPips con hasTakeProfit, Annulla chiude il popup
+                      if (currentSheet === 'OneFunded' || (currentSheet === 'Fintokei' && hasTakeProfit) || (currentSheet === 'FundingTraders' && hasTakeProfit) || (currentSheet === 'FundingPips' && hasTakeProfit) || (currentSheet === 'Alpha Capital' && hasTakeProfit)) {
+                        // Per OneFunded, Fintokei, FundingTraders, FundingPips e Alpha Capital con hasTakeProfit, Annulla chiude il popup
                         setShowRisultatiPopup(false);
                       }
                       setRisultatoSelezionato(''); 
                       setProfittoRisultato(''); 
                       setCapitalePropRisultato('');
                     }} className="flex-1 bg-gray-300 text-gray-700 px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base">
-                      {(currentSheet === 'OneFunded' || (currentSheet === 'Fintokei' && hasTakeProfit) || (currentSheet === 'FundingTraders' && hasTakeProfit) || (currentSheet === 'FundingPips' && hasTakeProfit)) ? 'Annulla' : '← Indietro'}
+                      {(currentSheet === 'OneFunded' || (currentSheet === 'Fintokei' && hasTakeProfit) || (currentSheet === 'FundingTraders' && hasTakeProfit) || (currentSheet === 'FundingPips' && hasTakeProfit) || (currentSheet === 'Alpha Capital' && hasTakeProfit)) ? 'Annulla' : '← Indietro'}
                     </button>
                   )}
                   <button
@@ -3657,8 +3679,8 @@ const TradingCalculator = () => {
                           setCapitalePropRisultato('');
                         }
                       }
-                      // Logica per FundingPips con hasTakeProfit
-                      else if (currentSheet === 'FundingPips' && hasTakeProfit) {
+                      // Logica per FundingPips e Alpha Capital con hasTakeProfit
+                      else if ((currentSheet === 'FundingPips' || currentSheet === 'Alpha Capital') && hasTakeProfit) {
                         const capitaleDefault = getCapitalTiers(currentSheet)[livelloUtente - 1];
                         const sogliaProfitto = capitaleDefault * (-0.03);
                         const sogliaCapitale = capitaleDefault * 1.1;
@@ -3720,7 +3742,7 @@ const TradingCalculator = () => {
                     }}
                     className="flex-1 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base"
                   >
-                    {(currentSheet === 'OneFunded' || (risultatoSelezionato === 'Take profit' && operazione === 1) || (risultatoSelezionato === 'Stop loss' && currentSheet === 'FundingTraders' && operazione === 1) || (risultatoSelezionato === 'Stop loss' && currentSheet === 'The5ers' && !hasTakeProfit) || ((currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders') && hasTakeProfit)) && !((currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders') && !hasTakeProfit) ? 'Conferma' : 'Chiudi'}
+                    {(currentSheet === 'OneFunded' || (risultatoSelezionato === 'Take profit' && operazione === 1) || (risultatoSelezionato === 'Stop loss' && currentSheet === 'FundingTraders' && operazione === 1) || (risultatoSelezionato === 'Stop loss' && currentSheet === 'The5ers' && !hasTakeProfit) || ((currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'Alpha Capital') && hasTakeProfit)) && !((currentSheet === 'Fintokei' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'Alpha Capital') && !hasTakeProfit) ? 'Conferma' : 'Chiudi'}
                   </button>
                 </div>
               </div>
@@ -3809,6 +3831,7 @@ const TradingCalculator = () => {
                        currentSheet === 'MasterFunders' ? 'Core Challenge' : 
                        currentSheet === 'FundingTraders' ? 'PRO10' : 
                        currentSheet === 'FundingPips' ? 'Funding Pips' : 
+                       currentSheet === 'Alpha Capital' ? 'Alpha Pro 10%' : 
                        currentSheet === 'Fintokei' ? 'Pro Trader' : 
                        currentSheet === 'Audacity Capital' ? 'Ability challenge' : 'High Stakes'}
                     </p>
@@ -3822,7 +3845,7 @@ const TradingCalculator = () => {
                     </div>
                   )}
                   
-                  {(currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'MasterFunders' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'Audacity Capital') && (
+                  {(currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'MasterFunders' || currentSheet === 'FundingPips' || currentSheet === 'FundingTraders' || currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'Audacity Capital' || currentSheet === 'Alpha Capital') && (
                     <div className="bg-blue-50 rounded-lg p-3">
                       <h4 className="font-semibold text-blue-800 mb-1 text-sm">Dimensione challenge</h4>
                       <p className="text-blue-700 font-medium text-sm">
@@ -3836,7 +3859,7 @@ const TradingCalculator = () => {
                     </div>
                   )}
                   
-                  {currentSheet === 'FundingPips' ? (
+                  {(currentSheet === 'FundingPips' || currentSheet === 'Alpha Capital') ? (
                     <>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="bg-blue-50 rounded-lg p-2.5">
@@ -3959,6 +3982,8 @@ const TradingCalculator = () => {
                           ? ['$40', '$75', '$170', '$319', '$549'][livelloUtente - 1]
                           : currentSheet === 'FundingPips'
                           ? ['$36', '$66', '$177', '$299', '$529'][livelloUtente - 1]
+                          : currentSheet === 'Alpha Capital'
+                          ? ['$33', '$77', '$177', '$267', '$447'][livelloUtente - 1]
                           : currentSheet === 'Fintokei'
                           ? ['-', '-', '$159', '$319', '$529'][livelloUtente - 1]
                           : currentSheet === 'Audacity Capital'
