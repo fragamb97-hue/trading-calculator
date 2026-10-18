@@ -325,7 +325,7 @@ const TradingCalculator = () => {
       factor: 0.75,
       k8Calc: (prezzo) => prezzo / 30,
       l8_base: {
-        fase1: [0.18, 0.19, 0.19, 0.2, 0.21],
+        fase1: [0.18, 0.19, 0.18, 0.2, 0.21],
         fase2: [0.31, 0.3, 0.3, 0.31, 0.3]
       },
       soglie: [250, 500, 1250, 2500, 5000],
