@@ -17,7 +17,7 @@ const DEFAULT_CREDENTIALS = {
 const USER_LEVEL_PERMISSIONS = {
   'FPia': [2, 3],
   'AZuc': [2],
-  'GCos': [2],
+  'GCos': [3],
   'GAlberati': [1],
   'Nick': [3, 4],
   'Rini': [3],
