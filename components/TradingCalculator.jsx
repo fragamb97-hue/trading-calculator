@@ -2089,7 +2089,7 @@ const TradingCalculator = () => {
     
     // Divisore base per la fase Real
     // Regola speciale: per utente '3' con FundingTraders, aumenta del 50%
-    const divisoreBase = (username === '3' && (prop1 === 'fundingtraders' || prop2 === 'fundingtraders')) ? 67.5 : 45;
+    const divisoreBase = (username === '3' && (prop1 === 'fundingtraders' || prop2 === 'fundingtraders')) ? 67.5 : 30;
     
     // Calcola Lotti Prop 1 con la nuova formula
     const calc_lotti_1 = maxValue1 / divisoreBase;
@@ -2112,6 +2112,17 @@ const TradingCalculator = () => {
       finalLottiProp2 = lottiProp2 * 2;
     }
     // ======== FINE DIMEZZA RISCHIO - MODIFICA 4 ========
+    
+    // ======== INIZIO TETTO LOTTI FUNDED NEXT ========
+    // Se tra le due prop c'è FundedNext, i lotti di entrambe non superano il tetto del livello
+    // (0.25 al livello 3, proporzionale agli altri livelli: x1, x2, x5, x10, x20)
+    // Il tetto è lo stesso con e senza Dimezza Rischio (si applica ai lotti finali)
+    if (prop1 === 'fundednext' || prop2 === 'fundednext') {
+      const tettoLotti = [0.05, 0.1, 0.25, 0.5, 1][livelloUtente - 1];
+      finalLottiProp1 = Math.min(finalLottiProp1, tettoLotti);
+      finalLottiProp2 = Math.min(finalLottiProp2, tettoLotti);
+    }
+    // ======== FINE TETTO LOTTI FUNDED NEXT ========
     
     // Salva i risultati negli stati
     setLottiProp1Dollari(Math.round(finalLottiProp1 * 100) / 100);
