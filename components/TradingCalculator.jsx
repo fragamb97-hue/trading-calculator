@@ -30,10 +30,11 @@ const USER_LEVEL_PERMISSIONS = {
 // 5ers Real (solo Angelo): valori fissi
 const REAL_5ERS = {
   lottiProp: 0.4,
-  lottiBroker: 0.27,
-  takeProfitProp: 900,
-  stopLossProp: 850,
-  capMinimo: 22510 // il cap prop non può mai scendere sotto questo valore
+  lottiBroker: 0.26,
+  takeProfitProp: 1050,
+  stopLossProp: 1000,
+  capBase: 30000, // cap prop di partenza (e valore dopo il Reset)
+  capMinimo: 27010 // il cap prop non può mai scendere sotto questo valore
 };
 
 // SL Prop di 5ers Real: 850 $, ridotto se cap - SL andrebbe sotto il capitale minimo
@@ -334,6 +335,7 @@ const TradingCalculator = () => {
   // Aggiorna capitale di default quando cambia livello
   useEffect(() => {
     const getCapitaleDefault = () => {
+      if (currentSheet === '5ers Real') return REAL_5ERS.capBase;
       return currentSheet === 'The5ers' 
         ? [5000, 10000, 25000, 50000, 100000][livelloUtente - 1]
         : currentSheet === 'Fintokei'
@@ -2310,7 +2312,7 @@ const TradingCalculator = () => {
     const capitali = currentSheet === 'The5ers' 
       ? [5000, 10000, 25000, 50000, 100000]
       : getCapitalTiers(currentSheet);
-    const capitale = capitali[livelloUtente - 1];
+    const capitale = currentSheet === '5ers Real' ? REAL_5ERS.capBase : capitali[livelloUtente - 1];
     setCapitaleFungina(capitale);
     setCapitaleSuProp(capitale);
     setFase(1);
