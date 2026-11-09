@@ -27,6 +27,43 @@ const USER_LEVEL_PERMISSIONS = {
   '1': [1, 2, 3, 4, 5]
 };
 
+// 5ers Real (solo Angelo): valori fissi
+const REAL_5ERS = {
+  lottiProp: 0.4,
+  lottiBroker: 0.27,
+  takeProfitProp: 900,
+  stopLossProp: 850,
+  capMinimo: 22510 // il cap prop non può mai scendere sotto questo valore
+};
+
+// SL Prop di 5ers Real: 850 $, ridotto se cap - SL andrebbe sotto il capitale minimo
+const getStopLossProp5ersReal = (capitale) => {
+  const sl = Math.min(REAL_5ERS.stopLossProp, capitale - REAL_5ERS.capMinimo);
+  return Math.max(0, Math.round(sl * 100) / 100);
+};
+
+// TP/SL Broker di 5ers Real: stesse regole degli altri fogli
+// - prezzo broker = prezzo prop opposto ± offset spread, offset = (spread oro the5ers + spread oro broker) / 200
+// - dollari TP broker = SL prop x rapporto lotti - commissioni; dollari SL broker = TP prop x rapporto lotti + commissioni
+// - rapporto lotti = lotti broker / lotti prop; commissioni = lotti broker x 40 (XAUUSD)
+const getBroker5ersReal = (capitale, prezzoIngresso, direzione) => {
+  const rapportoLotti = REAL_5ERS.lottiBroker / REAL_5ERS.lottiProp;
+  const commissioni = REAL_5ERS.lottiBroker * 40;
+  const spreadOffset = (SPREAD_CONSTANTS.the5ers.oro + SPREAD_CONSTANTS.broker.oro) / 200;
+  const slProp = getStopLossProp5ersReal(capitale);
+  const tpProp = REAL_5ERS.takeProfitProp;
+  const segno = direzione === 'BUY' ? 1 : -1;
+  const ingresso = Number(prezzoIngresso);
+  const prezzoTpProp = ingresso + segno * tpProp / (REAL_5ERS.lottiProp * 100);
+  const prezzoSlProp = ingresso - segno * slProp / (REAL_5ERS.lottiProp * 100);
+  return {
+    takeProfitPrezzo: prezzoSlProp + segno * spreadOffset,
+    stopLossPrezzo: prezzoTpProp + segno * spreadOffset,
+    takeProfitDollari: slProp * rapportoLotti - commissioni,
+    stopLossDollari: tpProp * rapportoLotti + commissioni
+  };
+};
+
 const PROP_WEIGHTS = {
   'the5ers': 1.0,
   'masterfunders': 1.0,
@@ -2449,6 +2486,27 @@ const TradingCalculator = () => {
                 </h4>
               </button>
             </div>
+
+            {/* ======== INIZIO 5ERS REAL (solo Angelo) ======== */}
+            {username === 'Angelo' && (
+              <div className="w-full mt-3 sm:mt-4">
+                <button
+                  onClick={() => {
+                    setCurrentSheet('5ers Real');
+                    setShowWelcome(false);
+                    handleReset();
+                  }}
+                  className="w-full bg-gradient-to-br from-white via-blue-50 to-blue-100 border-2 border-blue-200 rounded-2xl p-8 sm:p-6 shadow-lg shadow-blue-100/50 text-center group relative overflow-hidden backdrop-blur-sm min-h-[80px] sm:min-h-auto"
+                >
+                  <div className="absolute inset-1 rounded-xl border border-blue-50/60"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-50/20 to-transparent opacity-50"></div>
+                  <h4 className="font-bold text-blue-700 text-xs relative z-10 drop-shadow-sm">
+                    5ers Real
+                  </h4>
+                </button>
+              </div>
+            )}
+            {/* ======== FINE 5ERS REAL ======== */}
           </div>
         </div>
         
@@ -2875,7 +2933,7 @@ const TradingCalculator = () => {
                   {userPermissions.includes(4) && <option value={4}>$5000</option>}
                   {userPermissions.includes(5) && <option value={5}>$10000</option>}
                 </select>
-                {currentSheet !== 'Fase Real' && (
+                {currentSheet !== 'Fase Real' && currentSheet !== '5ers Real' && (
                   <button 
                     onClick={() => {
                       if (currentSheet === 'FundedNext' || currentSheet === 'OneFunded' || currentSheet === 'MasterFunders' || currentSheet === 'FundingTraders' || currentSheet === 'FundingPips' || currentSheet === 'The5ers' || currentSheet === 'Fintokei' || currentSheet === 'Audacity Capital' || currentSheet === 'Alpha Capital') {
@@ -3372,6 +3430,112 @@ const TradingCalculator = () => {
                     </div>
                   </div>
                 </div>
+              </>
+            ) : currentSheet === '5ers Real' ? (
+              <>
+                {/* ======== INIZIO 5ERS REAL (solo Angelo) ======== */}
+                {/* Cap. Prop */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Cap. Prop $</label>
+                    <input type="number" value={capitaleSuProp} onChange={(e) => setCapitaleSuProp(Number(e.target.value))} className="w-full px-2 py-1 text-sm border rounded" />
+                  </div>
+                </div>
+
+                {/* Lotti fissi */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <h3 className="text-lg font-semibold mb-4">Parametri Lotti</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white rounded-lg p-4 text-center border-l-4 border-blue-500">
+                      <div className="text-xs text-gray-500 mb-1">LOTTI 5ERS</div>
+                      <div className="text-2xl font-bold text-blue-700">{REAL_5ERS.lottiProp}</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 text-center border-l-4 border-indigo-500">
+                      <div className="text-xs text-gray-500 mb-1">LOTTI BROKER</div>
+                      <div className="text-2xl font-bold text-indigo-700">{REAL_5ERS.lottiBroker}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Parametri Operazione */}
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-4 mb-6 border border-slate-200 shadow-sm">
+                  <div className="flex items-center mb-3">
+                    <h3 className="text-lg font-bold text-slate-700">Parametri Operazione Prop</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-white rounded-lg p-3 shadow-sm border border-slate-100">
+                      <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">
+                        Prezzo Ingresso
+                      </label>
+                      <input 
+                        type="number" 
+                        step="0.1" 
+                        value={prezzoIngresso || ''} 
+                        onChange={(e) => setPrezzoIngresso(e.target.value === '' ? '' : Number(e.target.value))} 
+                        className="w-full px-3 py-2 text-lg font-semibold border-2 border-slate-200 rounded-lg focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all" 
+                      />
+                    </div>
+                    <div className="bg-white rounded-lg p-3 shadow-sm border border-slate-100">
+                      <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">
+                        Direzione
+                      </label>
+                      <select 
+                        value={tipoOperazione} 
+                        onChange={(e) => setTipoOperazione(e.target.value)} 
+                        className="w-full px-3 py-2 text-lg font-semibold border-2 border-slate-200 rounded-lg focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"
+                      >
+                        <option value="BUY">BUY</option>
+                        <option value="SELL">SELL</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Take Profit & Stop Loss (valori in attesa delle regole) */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <h3 className="text-lg font-semibold mb-4">Take Profit & Stop Loss</h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white rounded-lg p-4 text-center border-l-4 border-green-500">
+                      <div className="text-xs text-gray-500 mb-1">TAKE PROFIT PROP</div>
+                      <div className="text-lg font-bold text-green-600">
+                        {prezzoIngresso
+                          ? (Number(prezzoIngresso) + (tipoOperazione === 'BUY' ? 1 : -1) * REAL_5ERS.takeProfitProp / (REAL_5ERS.lottiProp * 100)).toFixed(2)
+                          : '0.00'}
+                      </div>
+                      <div className="text-xs text-gray-500">{REAL_5ERS.takeProfitProp} $</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 text-center border-l-4 border-green-400">
+                      <div className="text-xs text-gray-500 mb-1">TAKE PROFIT BROKER</div>
+                      <div className="text-lg font-bold text-green-600">
+                        {prezzoIngresso ? getBroker5ersReal(capitaleSuProp, prezzoIngresso, tipoOperazione).takeProfitPrezzo.toFixed(2) : '0.00'}
+                      </div>
+                      <div className="text-xs text-gray-500">{getBroker5ersReal(capitaleSuProp, prezzoIngresso, tipoOperazione).takeProfitDollari.toFixed(2)} $</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 text-center border-l-4 border-red-500">
+                      <div className="text-xs text-gray-500 mb-1">STOP LOSS PROP</div>
+                      <div className="text-lg font-bold text-red-600">
+                        {prezzoIngresso
+                          ? (Number(prezzoIngresso) + (tipoOperazione === 'BUY' ? -1 : 1) * getStopLossProp5ersReal(capitaleSuProp) / (REAL_5ERS.lottiProp * 100)).toFixed(2)
+                          : '0.00'}
+                      </div>
+                      <div className="text-xs text-gray-500">-{getStopLossProp5ersReal(capitaleSuProp)} $</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 text-center border-l-4 border-red-400">
+                      <div className="text-xs text-gray-500 mb-1">STOP LOSS BROKER</div>
+                      <div className="text-lg font-bold text-red-600">
+                        {prezzoIngresso ? getBroker5ersReal(capitaleSuProp, prezzoIngresso, tipoOperazione).stopLossPrezzo.toFixed(2) : '0.00'}
+                      </div>
+                      <div className="text-xs text-gray-500">-{getBroker5ersReal(capitaleSuProp, prezzoIngresso, tipoOperazione).stopLossDollari.toFixed(2)} $</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-center gap-4">
+                  <button onClick={handleReset} className="bg-orange-500 text-white px-8 py-3 rounded-lg font-medium hover:bg-orange-600">
+                    Reset
+                  </button>
+                </div>
+                {/* ======== FINE 5ERS REAL ======== */}
               </>
             ) : (
               <div className="flex items-center justify-center h-96">
