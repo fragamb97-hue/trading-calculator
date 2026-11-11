@@ -31,7 +31,7 @@ const USER_LEVEL_PERMISSIONS = {
 const REAL_5ERS = {
   lottiProp: 0.4,
   lottiBroker: 0.26,
-  takeProfitProp: 1050,
+  takeProfitProp: 920,
   stopLossProp: 1000,
   capBase: 30000, // cap prop di partenza (e valore dopo il Reset)
   capMinimo: 27010 // il cap prop non può mai scendere sotto questo valore
