@@ -78,7 +78,7 @@ const PROP_WEIGHTS = {
 
 const CAPITAL_TIERS = {
   'default': [5000, 10000, 25000, 50000, 100000],
-  'dragon': [5000, 10000, 25000, 60000, 120000]
+  'dragon': [5000, 10000, 25000, 50000, 100000]
 };
 
 // Helper function to get capital tiers based on sheet/provider
@@ -97,8 +97,8 @@ const SOGLIA_MIN = {
   'fundingpips': [4502, 9004, 22508, 45020, 90040],
   'fintokei': [4502, 9004, 18006, 45020, 90040],
   'dragon': {
-    fase1: [4252, 8504, 21260, 51020, 102040],
-    fase2: [4502, 9004, 22510, 54020, 108040]
+    fase1: [4252, 8504, 21260, 42520, 85040],
+    fase2: [4502, 9004, 22510, 45020, 90040]
   }
 };
 
@@ -147,7 +147,7 @@ const SPREAD_CONSTANTS = {
     eurusd: 4
   },
   fundingpips: {
-    oro: 60,
+    oro: 30,
     eurusd: 1
   },
   the5ers: {
@@ -527,7 +527,7 @@ const TradingCalculator = () => {
     // - Challenge Phases: 2 (rimossa fase 3)
     // - Nome Challenge: Audacity Capital
     // - Piattaforma: Platform 5
-    // - Dimensione Challenge: $5,000 (Liv1), $10,000 (Liv2), $25,000 (Liv3), $60,000 (Liv4), $120,000 (Liv5)
+    // - Dimensione Challenge: $5,000 (Liv1), $10,000 (Liv2), $25,000 (Liv3), $50,000 (Liv4), $100,000 (Liv5)
     // - Prezzo: $49 (Liv1), $90 (Liv2), $168 (Liv3), $320 (Liv4), $540 (Liv5)
     'Audacity Capital': {
       key: 'dragon',
@@ -544,13 +544,13 @@ const TradingCalculator = () => {
         fase2: { adj1: [0.02, 0.05, 0.13, 0.28, 0.55], adj2: [0.01, 0.03, 0.06, 0.13, 0.28] }
       },
       targets: {
-        fase1: [4250, 8500, 21250, 51000, 102000],
-        fase2: [4500, 9000, 22500, 54000, 108000]
+        fase1: [4250, 8500, 21250, 42500, 85000],
+        fase2: [4500, 9000, 22500, 45000, 90000]
       },
       soglie180: [250, 500, 1250, 2500, 5000],
       thresholds: {
-        fase1: [4252, 8504, 21260, 51020, 102040],
-        fase2: [4502, 9004, 22510, 54020, 108040]
+        fase1: [4252, 8504, 21260, 42520, 85040],
+        fase2: [4502, 9004, 22510, 45020, 90040]
       }
     }
   };
@@ -591,6 +591,10 @@ const TradingCalculator = () => {
         const targetValue = (fase === 1 ? values.fase1 : (fase === 2 ? values.fase2 : values.fase3)) * multiplier;
         const thresholdValue = values.thresholdFase2 * multiplier;
         
+        // Tetto massimo dello Stop Loss Prop in fase 1: 1400 al livello 3 (25.000), proporzionale al capitale degli altri livelli (5,6%)
+        // Capitali Audacity: 5.000 / 10.000 / 25.000 / 50.000 / 100.000
+        const tettoStopLossFase1 = [280, 560, 1400, 2800, 5600][livelloUtente - 1];
+        
         if (fase === 1) {
           if (operazione === 1) {
             // Nuova formula per Audacity Capital fase 1 operazione prima:
@@ -598,22 +602,22 @@ const TradingCalculator = () => {
             // Livello 1: (5500 - cap) / 2.5
             // Livello 2: (11000 - cap) / 2.5
             // Livello 3: (27500 - cap) / 2.5
-            // Livello 4: (66000 - cap) / 2.5
-            // Livello 5: (132000 - cap) / 2.5
-            const baseValues = [5500, 11000, 27500, 66000, 132000];
+            // Livello 4: (55000 - cap) / 2.5
+            // Livello 5: (110000 - cap) / 2.5
+            const baseValues = [5500, 11000, 27500, 55000, 110000];
             const baseValue = baseValues[livelloUtente - 1];
-            return (baseValue - capitaleSuProp) / 2.5;
+            return Math.min((baseValue - capitaleSuProp) / 2.5, tettoStopLossFase1);
           } else {
             // Nuova formula per Audacity Capital fase 1 operazione successiva:
             // baseValue - capitaleSuProp
             // Livello 1: 5504 - cap
             // Livello 2: 11008 - cap
             // Livello 3: 27520 - cap
-            // Livello 4: 66048 - cap
-            // Livello 5: 132096 - cap
-            const baseValuesSuccessiva = [5504, 11008, 27520, 66048, 132096];
+            // Livello 4: 55040 - cap
+            // Livello 5: 110080 - cap
+            const baseValuesSuccessiva = [5504, 11008, 27520, 55040, 110080];
             const baseValue = baseValuesSuccessiva[livelloUtente - 1];
-            return profittoOggi === 0 ? 0 : baseValue - capitaleSuProp;
+            return profittoOggi === 0 ? 0 : Math.min(baseValue - capitaleSuProp, tettoStopLossFase1);
           }
         } else { // fase === 2
           if (operazione === 1) {
@@ -622,9 +626,9 @@ const TradingCalculator = () => {
             // Livello 1: (5250 - cap) / 2
             // Livello 2: (10500 - cap) / 2
             // Livello 3: (26250 - cap) / 2
-            // Livello 4: (63000 - cap) / 2
-            // Livello 5: (126000 - cap) / 2
-            const baseValuesFase2 = [5250, 10500, 26250, 63000, 126000];
+            // Livello 4: (52500 - cap) / 2
+            // Livello 5: (105000 - cap) / 2
+            const baseValuesFase2 = [5250, 10500, 26250, 52500, 105000];
             const baseValue = baseValuesFase2[livelloUtente - 1];
             return (baseValue - capitaleSuProp) / 2;
           } else {
@@ -633,9 +637,9 @@ const TradingCalculator = () => {
             // Livello 1: 5254 - cap
             // Livello 2: 10508 - cap
             // Livello 3: 26270 - cap
-            // Livello 4: 63048 - cap
-            // Livello 5: 126096 - cap
-            const baseValuesSuccessivaFase2 = [5254, 10508, 26270, 63048, 126096];
+            // Livello 4: 52540 - cap
+            // Livello 5: 105080 - cap
+            const baseValuesSuccessivaFase2 = [5254, 10508, 26270, 52540, 105080];
             const baseValue = baseValuesSuccessivaFase2[livelloUtente - 1];
             return profittoOggi === 0 ? 0 : baseValue - capitaleSuProp;
           }
@@ -652,11 +656,11 @@ const TradingCalculator = () => {
           const takeProfitBaseValues = [360, 720, 1700, 3500, 7000];
           const takeProfitBase = takeProfitBaseValues[livelloUtente - 1];
           
-          // Soglie minime per livello: [4250, 8500, 21250, 51000, 102000]
+          // Soglie minime per livello: [4250, 8500, 21250, 42500, 85000]
           const currentTargets = config.targets.fase1;
           const sogliaMinima = currentTargets[livelloUtente - 1];
           
-          // Thresholds per livello: [4252, 8504, 21260, 51020, 102040]
+          // Thresholds per livello: [4252, 8504, 21260, 42520, 85040]
           const currentThresholds = config.thresholds.fase1;
           const threshold = currentThresholds[livelloUtente - 1];
           
@@ -745,8 +749,8 @@ const TradingCalculator = () => {
           1: { alto: 4950, medio: 4900, base: 5000, stopAlto: 30, stopMedio: 50, minCapitale: 4502, sogliaSpeciale: 4725 },
           2: { alto: 9900, medio: 9800, base: 10000, stopAlto: 60, stopMedio: 100, minCapitale: 9004, sogliaSpeciale: 9450 },
           3: { alto: 24750, medio: 24500, base: 25000, stopAlto: 150, stopMedio: 250, minCapitale: 22510, sogliaSpeciale: 23625 },
-          4: { alto: 59400, medio: 58800, base: 60000, stopAlto: 360, stopMedio: 600, minCapitale: 54020, sogliaSpeciale: 56700 },
-          5: { alto: 118800, medio: 117600, base: 120000, stopAlto: 720, stopMedio: 1200, minCapitale: 108040, sogliaSpeciale: 113400 }
+          4: { alto: 49500, medio: 49000, base: 50000, stopAlto: 300, stopMedio: 500, minCapitale: 45020, sogliaSpeciale: 47250 },
+          5: { alto: 99000, medio: 98000, base: 100000, stopAlto: 600, stopMedio: 1000, minCapitale: 90040, sogliaSpeciale: 94500 }
         };
         const sogliaLivello = soglieAudacity[livelloUtente];
         
@@ -808,14 +812,14 @@ const TradingCalculator = () => {
           1: { soglia1: 70, soglia2: 140, soglia3: 200, lotto1: 0.01, lotto2: 0.02, lotto3: 0.03, lotto4: 0.04 },
           2: { soglia0: 70, soglia1: 140, soglia2: 280, soglia3: 400, lotto0: 0.01, lotto1: 0.02, lotto2: 0.04, lotto3: 0.06, lotto4: 0.08 },
           3: { soglia0: 140, soglia1: 280, soglia2: 560, soglia3: 800, lotto0: 0.02, lotto1: 0.04, lotto2: 0.08, lotto3: 0.12, lotto4: 0.16 },
-          4: { soglia0: 504, soglia1: 1008, soglia2: 2016, soglia3: 2880, lotto0: 0.06, lotto1: 0.12, lotto2: 0.24, lotto3: 0.36, lotto4: 0.48 },
-          5: { soglia0: 840, soglia1: 1680, soglia2: 3360, soglia3: 4800, lotto0: 0.10, lotto1: 0.20, lotto2: 0.40, lotto3: 0.60, lotto4: 0.80 }
+          4: { soglia0: 420, soglia1: 840, soglia2: 1680, soglia3: 2400, lotto0: 0.06, lotto1: 0.12, lotto2: 0.24, lotto3: 0.36, lotto4: 0.48 },
+          5: { soglia0: 700, soglia1: 1400, soglia2: 2800, soglia3: 4000, lotto0: 0.10, lotto1: 0.20, lotto2: 0.40, lotto3: 0.60, lotto4: 0.80 }
         } : {
           1: { soglia1: 70, soglia2: 140, soglia3: 200, lotto1: 0.02, lotto2: 0.03, lotto3: 0.04, lotto4: 0.06 },
           2: { soglia0: 70, soglia1: 140, soglia2: 280, soglia3: 400, lotto0: 0.02, lotto1: 0.04, lotto2: 0.06, lotto3: 0.08, lotto4: 0.12 },
           3: { soglia0: 140, soglia1: 280, soglia2: 560, soglia3: 800, lotto0: 0.04, lotto1: 0.08, lotto2: 0.12, lotto3: 0.16, lotto4: 0.24 },
-          4: { soglia0: 504, soglia1: 1008, soglia2: 2016, soglia3: 2880, lotto0: 0.12, lotto1: 0.24, lotto2: 0.36, lotto3: 0.48, lotto4: 0.72 },
-          5: { soglia0: 840, soglia1: 1680, soglia2: 3360, soglia3: 4800, lotto0: 0.20, lotto1: 0.40, lotto2: 0.60, lotto3: 0.80, lotto4: 1.20 }
+          4: { soglia0: 420, soglia1: 840, soglia2: 1680, soglia3: 2400, lotto0: 0.12, lotto1: 0.24, lotto2: 0.36, lotto3: 0.48, lotto4: 0.72 },
+          5: { soglia0: 700, soglia1: 1400, soglia2: 2800, soglia3: 4000, lotto0: 0.20, lotto1: 0.40, lotto2: 0.60, lotto3: 0.80, lotto4: 1.20 }
         };
         
         const livelloLotti = soglieLottiAudacity[livelloUtente];
